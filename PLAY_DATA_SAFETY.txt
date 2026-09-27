@@ -1,0 +1,32 @@
+﻿DATA SAFETY — Cadastro Clínico (com.cadclinico.app) — Respostas para Play Console
+
+1) O app coleta ou compartilha dados?
+   COLETA: Não. Nenhum dado é coletado do usuário ou do dispositivo. Todo dado é digitado por você e fica no armazenamento local (IndexedDB/localStorage) sem transmissão.
+   COMPARTILHAMENTO: Não. Nenhum dado é compartilhado, vendido ou enviado a terceiros. Não há servidor, SDK de anúncios ou analytics.
+
+2) Tipos de dados (marcar "Nenhum" em todas as categorias):
+   Localização, informações pessoais, fotos/vídeos, arquivos, contatos, e-mails, saúde etc. = Não coletado.
+
+3) Criptografia:
+   Em trânsito: N/A (não há transmissão). Em repouso: SIM — IndexedDB cifrado localmente com AES-GCM e chave gerada no aparelho (PBKDF2 120k iterações).
+
+4) Exclusão de dados:
+   Usuário apaga no app: Banco de Dados → REINICIAR (escreva "confirmar") ou Android → Configurações → Apps → Cadastro Clínico → Armazenamento → Limpar dados / Desinstalar.
+
+5) SDKs de terceiros:
+   Nenhum. Sem Firebase, sem AdMob, sem analytics. Único link externo opcional é WhatsApp (https://wa.me) aberto por toque do usuário no app externo — sem SDK e sem envio de fichas.
+
+6) Permissões Android:
+   Nenhuma permissão sensível (sem INTERNET, sem câmera/microfone/contatos/GPS). Manifest sem uses-permission.
+
+7) Público-alvo e classificação:
+   Público: Adultos (18+). Não direcionado a crianças. Marcar "App não é voltado para crianças" e responder questionário IARC: sem conteúdo sexual, violento, financeiro, apostas, social ou médico-instrutivo.
+
+8) Categoria correta:
+   Produtividade / Ferramentas — Organizador. NÃO marcar Saúde (não ensina saúde nem divulga informação médica), NÃO Finanças, NÃO Social, NÃO Jogos.
+
+9) Anúncios e compras:
+   Sem anúncios, sem compras internas, sem assinaturas.
+
+10) URL da política de privacidade (obrigatória):
+   Hospede o arquivo client/public/politica-privacidade.html em URL HTTPS pública (ex.: GitHub Pages, seu domínio) e cole no Play Console → Política de privacidade. O mesmo arquivo já está embutido em dist/public/politica-privacidade.html e em android/assets/public para acesso offline.

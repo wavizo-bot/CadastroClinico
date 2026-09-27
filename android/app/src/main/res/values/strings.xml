@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Cadastro Clínico</string>
+    <string name="title_activity_main">Cadastro Clínico</string>
+    <string name="package_name">com.cadclinico.app</string>
+    <string name="custom_url_scheme">com.cadclinico.app</string>
+</resources>

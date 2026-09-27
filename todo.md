@@ -1,0 +1,108 @@
+# Atualização — Clínica da Família II
+
+- [x] Transformar o modelo de ruas e equipes em estrutura territorial importável.
+- [x] Simplificar o cabeçalho, os logotipos e a navegação da aplicação.
+- [x] Implementar busca universal em todos os campos de pacientes.
+- [x] Criar retorno por botão e integração com histórico de navegação do telefone.
+- [x] Incluir telas de Funcionamento da unidade e Banco de dados.
+- [x] Implementar importação, detecção de alterações e reinicialização com confirmação textual.
+- [x] Criar o administrativo com prompt copiável para conversão de planilhas em JSON.
+- [x] Validar compilação, fluxos principais e versão responsiva.
+- [x] Remover a barra fixa de navegação em todas as telas.
+- [x] Conferir a ordem alfabética de Funcionamento da unidade.
+- [x] Preparar uma versão Android de teste ou documentar o bloqueio técnico de geração local.
+- [x] Exibir a versão do aplicativo e a data do banco de dados no rodapé.
+- [x] Preparar os ícones Android a partir da imagem fornecida.
+- [x] Recompilar e entregar o APK com a versão no nome do arquivo.
+- [x] Mapear os campos úteis da planilha de pacientes fornecida.
+- [x] Incluir os registros úteis na base inicial de busca do aplicativo.
+- [x] Gerar um APK de teste com a planilha incluída.
+- [x] Exigir quatro caracteres e dois segundos de pausa para a busca de pacientes.
+- [x] Restringir a busca por mãe ao comando explícito "mãe ".
+- [x] Incluir data de nascimento e idade calculada na ficha de paciente.
+- [x] Buscar endereços do território por letras e números, reconhecendo intervalos.
+- [x] Corrigir o botão físico de voltar no Android e gerar um novo APK.
+- [x] Evitar salvar a base inicial completa no armazenamento local do navegador.
+- [x] Corrigir data de nascimento para DD/MM/AAAA e idade na mesma linha.
+- [x] Adicionar controles de limpar busca aos campos de pesquisa.
+- [x] Associar pacientes à equipe territorial, com cor e inicial da equipe.
+- [x] Incluir cópia de ficha e consulta da equipe na tela do paciente.
+- [x] Paginar resultados de pacientes e território.
+- [x] Gerar um APK de teste com os novos recursos.
+- [x] Atualizar as equipes e cores do território conforme o anexo revisado.
+- [x] Garantir contraste acessível entre texto, ícones e fundos.
+- [x] Permitir pesquisa territorial por profissionais, flor e cor.
+- [x] Ordenar todos os resultados de pacientes alfabeticamente.
+- [x] Aplicar singular correto para a idade de um ano.
+- [x] Priorizar busca de endereço com texto e número sem confundir nomes semelhantes.
+- [x] Gerar um APK de teste com as melhorias.
+- [x] Diagnosticar o bloqueio de interação após reabrir o aplicativo Android.
+- [x] Tornar a restauração de dados local tolerante a falhas.
+- [x] Gerar e testar um APK corrigido.
+- [x] Definir esquema único para pacientes, território, setores e telefones.
+- [x] Criar importação acumulativa por planilha, CSV e texto colado.
+- [x] Criar edição administrativa de território e funcionamento da unidade.
+- [x] Validar duplicidades e telefones brasileiros.
+- [x] Exportar JSON compatível com o APK.
+- [x] Validar a interface administrativa em desktop.
+- [x] Inserir cadastro, CPF e telefones demonstrativos em todos os pacientes.
+- [x] Remover bairro dos endereços demonstrativos.
+- [x] Ajustar a ficha para tela vertical estreita.
+- [x] Gerar HTML e APK demonstrativos para teste.
+- [x] Buscar somente cadastro quando a consulta tiver menos de quatro números.
+- [x] Incluir CPF, CNS e telefone em buscas com quatro ou mais números.
+- [x] Tratar texto seguido de número como endereço com número exato.
+- [x] Validar as novas regras e gerar APK de teste.
+- [x] Gerar pacote HTML estático da última versão para Windows.
+- [x] Gerar APK Android da última versão com regras de busca.
+- [x] Validar e entregar os dois pacotes de teste.
+- [x] Persistir senha local inicial CF2A e estado de bloqueio por tentativa.
+- [x] Criar tela de desbloqueio em quatro etapas com opções de três caracteres.
+- [x] Adicionar geração de senha no Banco de dados.
+- [x] Validar bloqueio, reinicialização por fechamento e gerar nova versão.
+- [x] Remover textos, ícones e indicadores de progresso da tela de acesso.
+- [x] Garantir que erro gere somente novas opções aleatórias, sem retorno visual.
+- [x] Gerar versão de teste com bloqueio silencioso.
+- [x] Garantir doze caracteres distintos nas quatro opções de acesso.
+- [x] Elevar a versão Android e preservar a rejeição de downgrade.
+- [x] Gerar e validar o APK corrigido.
+- [x] Consolidar os trechos, cores, flores e profissionais do novo material territorial.
+- [x] Atualizar a base territorial inicial e validar intervalos especiais.
+- [x] Compilar o APK de teste com as equipes atualizadas.
+- [x] Definir a mesclagem não destrutiva de pacientes e o tratamento dos dados demonstrativos.
+- [x] Exigir confirmação escrita e revisão opcional antes de substituir pacientes ou território.
+- [x] Validar o novo fluxo de importação e a interface administrativa.
+- [x] Elaborar a avaliação técnica, visual e de experiência de uso solicitada.
+- [x] Ajustar pesquisas iniciadas por tipo de logradouro em pacientes e território.
+- [x] Implementar aviso e bloqueio de senha inicial após dois dias.
+- [x] Implementar código trimestral e geração administrativa de senha vinculada ao código.
+- [x] Validar os fluxos e gerar APK e pacote administrativo atualizados.
+- [x] Exigir validação trimestral já na instalação a partir de 01/10/2026.
+- [x] Criptografar a base local enquanto aguarda nova senha autorizada.
+- [x] Limpar a base após dez dias de validação pendente e gerar os novos pacotes.
+- [x] Ajustar o início da exigência trimestral para 01/10/2026 e exibir o código já na tela de senha.
+- [x] Cifrar a base desde a instalação e desbloqueá-la por CF2A no período inicial ou senha trimestral autorizada.
+- [x] Limpar definitivamente a base cifrada após dez dias sem uso da senha autorizada.
+- [x] Confirmar e documentar o fluxo de reinstalação antes e após 01/10/2026.
+- [x] Impedir caracteres repetidos e sequências nas senhas manuais e trimestrais.
+- [x] Testar as regras de senha e gerar a atualização para entrega.
+- [x] Gerar uma prévia visual da tela de ativação trimestral de outubro.
+- [x] Montar e verificar o APK 1.20.21 e o pacote administrativo Windows para envio.
+- [x] Diagnosticar e corrigir os logotipos institucionais no APK Android 1.20.21.
+- [x] Validar visualmente os logotipos e reenviar o APK corrigido.
+- [x] Auditar as referências externas e confirmar o escopo offline do APK 1.20.22.
+- [x] Remover telemetria, fontes externas e permissão de internet do APK.
+- [x] Validar que somente o atalho opcional do WhatsApp preserva um endereço externo.
+- [x] Compilar e entregar o APK offline para testes.
+- [x] Definir e validar o campo de imagens institucionais incorporadas no JSON.
+- [x] Adicionar seleção, prévia, restauração e exportação de imagens no administrativo.
+- [x] Aplicar as imagens importadas no aplicativo com reserva interna e cifra local.
+- [x] Validar e gerar APK e pacote Windows atualizados.
+- [x] Consolidar o mapa de letras da planilha de exemplo para pacientes, território e funcionamento.
+- [x] Implementar a conferência completa de registros e os operadores de numeração territorial.
+- [x] Adicionar a opção de imagem institucional única centralizada.
+- [x] Gerar e validar os novos pacotes APK e Windows.
+- [x] Implementar mapa de colunas A–T sem linha auxiliar obrigatória.
+- [x] Implementar operadores !, @ e # para abrangência territorial.
+- [x] Exibir conferência completa de registros no administrativo.
+- [x] Implementar imagem institucional lado a lado ou única centralizada e ícone Android genérico.

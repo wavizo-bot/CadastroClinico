@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index,follow" />
+    <title>Política de Privacidade — Cadastro Clínico</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: #f6f8fa; color: #1a2332; line-height: 1.65; padding: 24px 16px; }
+      main { max-width: 760px; margin: 0 auto; background: #fff; border: 1px solid #e1e6ec; border-radius: 12px; padding: 32px 28px; }
+      h1 { font-size: 1.55rem; color: #17324d; margin-bottom: 4px; }
+      .updated { font-size: 0.85rem; color: #5b6b7d; margin-bottom: 20px; }
+      h2 { font-size: 1.05rem; color: #17324d; margin: 22px 0 8px; }
+      p, li { font-size: 0.94rem; }
+      ul { padding-left: 20px; margin: 6px 0; }
+      li { margin: 4px 0; }
+      strong { color: #17324d; }
+      .highlight { background: #eef6ee; border: 1px solid #cfe6cf; border-radius: 8px; padding: 12px 14px; margin: 14px 0; font-size: 0.94rem; }
+      .badge { display:inline-block; background:#17324d; color:#fff; font-size:0.72rem; font-weight:700; letter-spacing:.04em; padding:3px 8px; border-radius:999px; margin-bottom:10px; }
+      footer { margin-top: 26px; padding-top: 14px; border-top: 1px solid #e1e6ec; font-size: 0.85rem; color: #5b6b7d; }
+      a { color:#17324d; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span class="badge">APLICATIVO INDEPENDENTE — NÃO GOVERNAMENTAL</span>
+      <h1>Política de Privacidade</h1>
+      <p class="updated">Aplicativo <strong>Cadastro Clínico</strong> (pacote <code>com.cadclinico.app</code>) — Última atualização: 26 de setembro de 2026</p>
+
+      <div class="highlight">
+        <strong>Resumo em uma frase:</strong> o Cadastro Clínico é um <strong>organizador offline de cadastros de clientes</strong> (fichas gerais com nome, contato e endereço).
+        Todos os dados que você digita ou reconhece por foto ficam <strong>apenas no armazenamento local do seu aparelho</strong> (IndexedDB / localStorage).
+        O app <strong>não tem conta, não tem servidor, não coleta, não envia e não compartilha nada</strong> com terceiros.
+        O único acesso à internet que pode ocorrer é <strong>quando você tocar</strong> em um link de WhatsApp ou se o sistema precisar resolver uma fonte tipográfica do sistema — sempre por sua ação, e nunca com seus cadastros.
+      </div>
+
+      <h2>1. Quem somos — aplicativo não governamental</h2>
+      <p>O <strong>Cadastro Clínico</strong> é um aplicativo <strong>privado e independente</strong>, criado por um desenvolvedor autônomo para organização pessoal de fichas.
+      Ele <strong>não é</strong>, <strong>não representa</strong> e <strong>não possui vínculo</strong> com governo, prefeitura, estado, união, SUS, ministério, autarquia ou qualquer órgão público.
+      Não utiliza brasões, selos oficiais ou identidade governamental. Logotipos exibidos no app são apenas ilustrativos e <strong>substituíveis por você</strong> na tela de imagens — o padrão genérico não implica caráter oficial.</p>
+
+      <h2>2. O que o app faz e o que ele NÃO faz</h2>
+      <p><strong>Faz:</strong> ajuda você a organizar fichas de clientes/pacientes (nome, nome da mãe, nascimento, endereço, cadastro, CNS/CPF, telefones), organizar ruas por equipe e registrar setores de funcionamento — tudo localmente.</p>
+      <p><strong>Não faz:</strong></p>
+      <ul>
+        <li>Não é rede social e <strong>não permite comunicação entre usuários</strong> do app.</li>
+        <li>Não ensina, não dá aula, não oferece curso e não fornece aconselhamento de saúde, diagnóstico ou tratamento.</li>
+        <li>Não divulga informações sobre saúde, doenças ou guias clínicos.</li>
+        <li>Não opera com finanças, pagamentos, apostas ou jogos.</li>
+        <li>Não é direcionado a crianças e não coleta dados de crianças.</li>
+        <li>Não exibe publicidade, anúncios ou conteúdo patrocinado.</li>
+        <li>Não possui banco de dados online, sincronização em nuvem ou backup remoto.</li>
+      </ul>
+
+      <h2>3. Dados tratados — nenhum dado sai do aparelho</h2>
+      <p>O Cadastro Clínico <strong>não coleta dados de quem instala</strong>: não há cadastro de usuário, login, e-mail, telefone de registro, localização ou identificador.
+      Os únicos dados existentes são os que <strong>você mesmo digita</strong> nas fichas. Eles são gravados exclusivamente no <strong>armazenamento local do seu aparelho</strong> (IndexedDB cifrado com chave local + localStorage para preferências).
+      Nada é enviado a servidor, porque <strong>não há servidor</strong>. Os dados só deixam o aparelho se <strong>você exportar manualmente</strong> um arquivo JSON (compartilhando você mesmo via Drive, e-mail, etc.) ou se apagar/desinstalar o app.</p>
+
+      <h2>4. Permissões e acesso à internet</h2>
+      <p>Por padrão o app funciona <strong>100% offline</strong> e <strong>não solicita permissão de Internet</strong> no AndroidManifest (sem <code>android.permission.INTERNET</code>).</p>
+      <ul>
+        <li><strong>WhatsApp (opcional):</strong> ao tocar no ícone de WhatsApp de uma ficha, o app abre o link <code>https://wa.me/...</code> no aplicativo externo do WhatsApp. Isso abre o navegador/sistema por sua ação; o Cadastro Clínico não envia seus cadastros e não enxerga a conversa.</li>
+        <li><strong>Buscador óptico / câmera (opcional):</strong> o <strong>Buscador óptico</strong> permite enviar uma foto ou abrir a câmera de um documento para encontrar um morador. A leitura do texto é feita <strong>no próprio aparelho</strong>, por um modelo de reconhecimento embutido no app; a imagem <strong>não é enviada, não é gravada e não fica armazenada</strong>.
+        Essa permissão de câmera só é usada <strong>quando você toca</strong> em "ABRIR CÂMERA" dentro do Buscador óptico.</li>
+        <li><strong>Fontes tipográficas:</strong> o app usa fontes do sistema (<code>system-ui</code>, Roboto). Nenhuma fonte é baixada da internet pelo app. Se o sistema operacional resolver uma fonte pela rede, isso é controlado pelo Android, não pelo app, e não inclui seus dados.</li>
+      </ul>
+      <p>O app <strong>não acessa</strong>: microfone, contatos, GPS/localização, armazenamento externo compartilhado, histórico de navegação, lista de apps, notificações, biometria ou sensores. A câmera é usada <strong>somente</strong> se você tocar em "ABRIR CÂMERA" no Buscador óptico.</p>
+
+      <h2>5. Offline, criptografia e retenção</h2>
+      <p>Toda a interface está embutida no pacote. As fichas ficam no <strong>IndexedDB do WebView</strong>, protegidas pelo sandbox do Android e <strong>cifradas localmente (AES-GCM)</strong> com chave gerada no aparelho.
+      Não há sincronização. Recomendamos manter bloqueio de tela (PIN/biometria) no aparelho. Você pode apagar tudo a qualquer momento no app (Banco de Dados → Reiniciar) ou em Configurações do Android → Apps → Cadastro Clínico → Armazenamento → Limpar dados, ou desinstalando.</p>
+
+      <h2>6. Analytics, cookies, publicidade e compras</h2>
+      <ul>
+        <li><strong>Não</strong> usamos analytics, telemetria, Firebase Analytics ou similar.</li>
+        <li><strong>Não</strong> usamos cookies, pixels ou rastreadores.</li>
+        <li><strong>Não</strong> há anúncios, AdMob ou publicidade.</li>
+        <li><strong>Não</strong> há compras no app, assinaturas ou cobranças.</li>
+        <li><strong>Não</strong> há SDKs de terceiros que coletem dados.</li>
+      </ul>
+
+      <h2>7. Compartilhamento e venda de dados</h2>
+      <p>Nenhum dado é compartilhado, vendido ou alugado — porque nenhum dado é coletado ou transmitido. Não há integração com terceiros.</p>
+
+      <h2>8. Crianças e adolescentes</h2>
+      <p>O app é destinado a <strong>adultos que precisam organizar cadastros</strong> (uso profissional/autônomo). Não é dirigido a crianças menores de 13 anos e não coleta intencionalmente dados de crianças.
+      Caso você cadastre um menor como cliente, essas informações permanecem apenas no seu aparelho, sob sua responsabilidade.</p>
+
+      <h2>9. Seus direitos (LGPD — Lei 13.709/2018)</h2>
+      <p>Como os dados ficam só no aparelho, você exerce seus direitos diretamente nele: edite ou apague fichas no app ou limpe os dados do app nas configurações do Android.
+      Nenhum dado pessoal é mantido por nós em servidor, portanto não há o que solicitar externamente. Dúvidas: use o contato abaixo.</p>
+
+      <h2>10. Alterações nesta política</h2>
+      <p>Atualizações serão publicadas nesta mesma página, com nova data no topo. O uso contínuo após alteração implica concordância.</p>
+
+      <h2>11. Contato</h2>
+      <p>Dúvidas sobre privacidade: <strong>mmr05@hotmail.com</strong><br/>
+      Desenvolvedor responsável: Cadastro Clínico — projeto independente (não governamental).</p>
+
+      <footer>
+        Cadastro Clínico — organizador offline de cadastros. Documento para atendimento à política de privacidade da Google Play.
+        Este app não é afiliado a governo, não oferece conselhos de saúde, não possui rede social, finanças, apostas ou foco infantil.
+      </footer>
+    </main>
+  </body>
+</html>

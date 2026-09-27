@@ -1,0 +1,26 @@
+﻿Título curto (30): Cadastro Clínico
+Título (50): Cadastro Clínico — Organizador Offline
+
+Descrição curta (80):
+Organizador offline de fichas de clientes. 100% local, sem conta e sem internet.
+
+Descrição completa:
+Cadastro Clínico é um organizador offline de fichas para profissionais autônomos que precisam manter cadastros de clientes sempre à mão.
+
+• 100% OFFLINE — sem conta, sem login, sem nuvem. Tudo fica só no seu aparelho (criptografado localmente com AES-GCM).
+• Fichas completas: nome, mãe, nascimento/idade, endereço, cadastro, CNS/CPF e telefones (atalho opcional para WhatsApp com um toque).
+• Território por ruas e equipes com intervalos inteligentes (faixas, pares/ímpares, listas específicas).
+• Funcionamento da unidade com setores organizados.
+• Importação fácil: modelo de 3 CSVs unidos automaticamente (cruzando CNS/CPF/nome+nascimento) + planilha manual com letras A–T e validação sem apagar dados preenchidos.
+• Exportação em JSON único para você compartilhar como quiser (Drive, e-mail) — sem envio automático para servidor.
+• Senha opcional de 4 caracteres (A-Z, 1-9) escolhida por você, quando quiser. Sem senha, o app abre direto — sem bloqueio forçado (conforme exigência da Play Store).
+• Imagens institucionais opcionais incorporadas ao JSON (até 300 KB cada) — sem internet para exibir.
+
+AVISO IMPORTANTE — NÃO É GOVERNAMENTAL: App independente, privado, sem vínculo com governo, prefeitura, SUS, ministério ou órgão público. Não usa brasões oficiais. Logos são ilustrativos e substituíveis.
+
+NÃO É: rede social, chat entre usuários, curso/ensino de saúde, finanças, apostas/jogos, app infantil e não exibe anúncios. Não fornece diagnóstico, tratamento ou conselho de saúde; é apenas organizador de fichas sob sua responsabilidade. Não colete dados de terceiros sem consentimento.
+
+Ideal para consultórios, clínicas particulares, serviços autônomos e qualquer rotina que precise de cadastro organizado — com seus dados sob seu controle. Suporte: mmr05@hotmail.com
+
+Categoria Play Store: Produtividade / Ferramentas
+Público: 18+
