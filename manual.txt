@@ -396,10 +396,14 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
 --------------------------------------------------------------------------------
 - AAB v19 (1.0.15) reconstruído após as correções de termos v1.1 e runtime:
   versionCode 19, 7.057.194 bytes, assinatura BE:FA, R8 full mode,
-  proguard.map presente. O teste físico anterior (build pré-correção) abriu e
-  importou dados.rar (15804 pacientes, 69 ruas); o teste do artefato final
-  (edge-to-edge/IME e "Importar da URL") está pendente porque o adb está sem
-  dispositivos.
+  proguard.map presente. Artefato final testado no Xiaomi 25069PTEBG (goya,
+  Android 16, 1280x2772): "adb install -r" manteve a assinatura BE:FA e os
+  dados; termos v1.1, home 1.0.15, edge-to-edge, busca "zzzz" sem resultado,
+  teclado/IME e "Importar da URL" com URL inválida OK, sem crash. Observações
+  não bloqueantes para a 1.0.16: erro de rede aparece como "Failed to fetch"
+  (inglês) e o CANCELAR do card exige rolagem. O teste completo de download
+  por URL não foi feito por falta de arquivo público permitido; UI e erro
+  foram validados.
 - MSIX 1.0.15.0: build/validação por msix/build.ps1; enviar ao Partner Center
   (substituir o 1.0.13.0) e usar a URL da política
   https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
