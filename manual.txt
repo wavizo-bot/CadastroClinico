@@ -394,20 +394,27 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
 --------------------------------------------------------------------------------
 11. STATUS / PENDÊNCIAS (em 29/10/2026)
 --------------------------------------------------------------------------------
-- AAB v19 (1.0.15) validado: versionCode 19, 6,83 MB, assinatura BE:FA, R8 ativo,
-  proguard.map presente. Teste no aparelho: abre e importa dados.rar (15804
-  pacientes, 69 ruas). Falta testar edge-to-edge/IME e "Importar da URL" no
-  aparelho quando o adb voltar.
+- AAB v19 (1.0.15) reconstruído após as correções de termos v1.1 e runtime:
+  versionCode 19, 7.057.194 bytes, assinatura BE:FA, R8 full mode,
+  proguard.map presente. O teste físico anterior (build pré-correção) abriu e
+  importou dados.rar (15804 pacientes, 69 ruas); o teste do artefato final
+  (edge-to-edge/IME e "Importar da URL") está pendente porque o adb está sem
+  dispositivos.
 - MSIX 1.0.15.0: build/validação por msix/build.ps1; enviar ao Partner Center
-  (substituir o 1.0.13.0) e atualizar a URL da política para
-  https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html.
-- Landing + docs/app prontos em docs/; falta commit/push, ativação do Pages
-  (main /docs) e teste HTTP 200 de /, /app/, 3 docs e imagens.
+  (substituir o 1.0.13.0) e usar a URL da política
+  https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
+  (Pages ativo em main/docs desde 29/10/2026; HTTP 200 verificado).
+- Landing + docs/app publicados no GitHub Pages (main/docs): commit 9d22ddd,
+  build 9f7a848, HTTPS forçado; /, /app/, 3 docs legais, favicon, sitemap,
+  robots e imagens testados com HTTP 200.
+- Tag v1.0.15 publicada apontando para 9d22ddd (commit que gerou os pacotes);
+  main em 9f7a848 (commit posterior, apenas documentação/comentário).
 - Play Console: enviar o AAB v19 e rotacionar a upload key (ação do usuário;
-  o Google valida). Nunca reutilizar o versionCode 18.
-- Git: main local/remoto em ad9f2c6 (histórico purgado); mudanças desta etapa
-  (docs/, README, manual, msix, scripts) ainda não commitadas. O repo Windows
-  (CadastroClinicoMSIX) não é mais a fonte da política.
+  o Google valida). Nunca reutilizar o versionCode 18. A página pública do app
+  ainda retorna 404 enquanto não houver publicação.
+- Git: main local/remoto atualizado e árvore limpa; tag v1.0.15 em 9d22ddd
+  (commit que gerou os pacotes). Histórico purgado (git-filter-repo); o repo
+  Windows (CadastroClinicoMSIX) não é mais a fonte da política.
 
 FIM DO MANUAL — para detalhes de implementação, consulte log.txt e os próprios
 fontes (client/src/lib/* são pequenos e bem comentados em PT-BR).
