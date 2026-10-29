@@ -404,9 +404,9 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
   (substituir o 1.0.13.0) e usar a URL da política
   https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
   (Pages ativo em main/docs desde 29/10/2026; HTTP 200 verificado).
-- Landing + docs/app publicados no GitHub Pages (main/docs): commit 9d22ddd,
-  build 9f7a848, HTTPS forçado; /, /app/, 3 docs legais, favicon, sitemap,
-  robots e imagens testados com HTTP 200.
+- Landing + docs/app publicados no GitHub Pages (main/docs): conteúdo do commit
+  9d22ddd, HTTPS forçado; /, /app/, 3 docs legais, favicon, sitemap, robots e
+  imagens testados com HTTP 200.
 - Tag v1.0.15 publicada apontando para 9d22ddd (commit que gerou os pacotes);
   os commits posteriores são apenas documentação/comentário.
 - Play Console: enviar o AAB v19 e rotacionar a upload key (ação do usuário;
