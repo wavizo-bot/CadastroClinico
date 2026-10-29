@@ -408,7 +408,7 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
   build 9f7a848, HTTPS forçado; /, /app/, 3 docs legais, favicon, sitemap,
   robots e imagens testados com HTTP 200.
 - Tag v1.0.15 publicada apontando para 9d22ddd (commit que gerou os pacotes);
-  main em 9f7a848 (commit posterior, apenas documentação/comentário).
+  os commits posteriores são apenas documentação/comentário.
 - Play Console: enviar o AAB v19 e rotacionar a upload key (ação do usuário;
   o Google valida). Nunca reutilizar o versionCode 18. A página pública do app
   ainda retorna 404 enquanto não houver publicação.
