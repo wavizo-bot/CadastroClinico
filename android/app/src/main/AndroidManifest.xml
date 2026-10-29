@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--
+      INTERNET é usada SOMENTE pelo recurso opcional "Importar da URL", que
+      baixa um arquivo indicado pelo próprio usuário. O app não envia cadastros
+      a servidor algum (não existe backend). Ver politica-de-privacidade.html.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

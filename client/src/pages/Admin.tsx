@@ -55,7 +55,7 @@ function toPatient(row: SheetRow): Patient | null {
   const cns = cleanText(readColumn(row, "G"));
   const registration = cleanText(readColumn(row, "D"));
   const id = cns || registration || `${name}-${birth}`;
-  const phones = [compactPhone(readColumn(row, "I")), compactPhone(readColumn(row, "J"))].filter((phone) => phone.length === 10 || phone.length === 11);
+  const phones = [compactPhone(readColumn(row, "I")), compactPhone(readColumn(row, "J"))].filter((phone) => phone.length >= 8 && phone.length <= 11);
   const street = cleanText(readColumn(row, "E")); const number = cleanText(readColumn(row, "F"));
   return {
     id,
@@ -329,7 +329,7 @@ export default function Admin() {
       <p>Escolha os relatórios exportados do BI. O aplicativo reconhece cada arquivo pelo conteúdo — a ordem não importa — e une tudo em uma base só, cruzando CNS, CPF e nome com nascimento. Se algum arquivo não for reconhecido, escolha o tipo dele na lista.</p>
       <div className="admin-import-actions">
         <button disabled={Boolean(pendingMerge)} onClick={() => biInputRef.current?.click()}><Upload size={19} /> Escolher CSVs do BI…</button>
-        <input ref={biInputRef} className="visually-hidden" type="file" accept=".csv,.txt" multiple onChange={(event) => void handleBiFiles(event)} />
+        <input ref={biInputRef} className="visually-hidden" type="file" accept=".csv,.tsv,.txt,text/csv,text/plain,text/tab-separated-values" multiple onChange={(event) => void handleBiFiles(event)} />
         {biFiles.length > 0 && <button disabled={Boolean(pendingMerge)} onClick={importBiReports}>UNIR E IMPORTAR</button>}
       </div>
       {biFiles.map((entry) => <div className="bi-file-row" key={entry.name}>

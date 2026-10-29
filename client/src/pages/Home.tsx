@@ -2,13 +2,17 @@
 // Direção visual: Saúde Pública Editorial — informações territoriais diretas, contraste alto e apoio rápido em campo.
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { App as NativeApp } from "@capacitor/app";
-import { ArrowLeft, Building2, Camera, ChevronDown, ChevronLeft, ChevronRight, Clipboard, Database, FileUp, KeyRound, MapPin, MessageCircle, Phone, RotateCcw, Search, UsersRound, X } from "lucide-react";
-import { ClinicData, emptyData, loadAccessPassword, loadData, loadPersistedData, maisAntiga, mergeData, removeAccessPassword, resetData, saveAccessPassword, saveData, summarizeImport, TerritoryEntry } from "@/lib/dataStore";
+import { ArrowLeft, Building2, Camera, ChevronDown, ChevronLeft, ChevronRight, Clipboard, Database, FileUp, Globe, KeyRound, MapPin, MessageCircle, Phone, RotateCcw, Search, Sparkles, UsersRound, X } from "lucide-react";
+import { ClinicData, emptyData, loadAccessPassword, loadData, loadPersistedData, removeAccessPassword, resetData, saveAccessPassword, saveData, TerritoryEntry } from "@/lib/dataStore";
 import { ACCESS_ALPHABET, isValidAccessPassword } from "@/lib/accessSecurity";
 import { territoryNumberMatches, territoryRangeLabel, territorySpecificity } from "@/lib/territoryRules";
 import { BI_REPORT_LABELS, detectBiReport, mapBiRows, mapEquipesRows, mergeBiPatients, parseBiCsv, readBiFileText, type BiReportType } from "@/lib/biImport";
+import { extractRarFiles, rarErrorMessage } from "@/lib/rarImport";
+import { extractZipFiles, zipErrorMessage } from "@/lib/zipImport";
 import { buscarPorOcr, extrairCamposOcr, precarregarOcr, reconhecerImagem, type OcrCampos, type OcrMatch } from "@/lib/ocr";
 import { ehVarjao, VARJAO_ROTULO } from "@/lib/territoryRules";
+import { buscaDifusa, criarIndicePacientes, type IndicePacientes } from "@/lib/patientSearch";
+import { executarFaxinaComProgresso, FAXINA_GRUPOS, ROTULO_SEVERIDADE, type FaxinaProgresso, type FaxinaResultado } from "@/lib/faxina";
 import pacote from "../../../package.json";
 
 const CLINICA_LOGO = "";
@@ -17,7 +21,8 @@ const CITY_LOGO = "";
 const APP_VERSION = String(pacote.version ?? "0.0.0");
 const PATIENT_PAGE_SIZE = 5;
 const TERRITORY_PAGE_SIZE = 10;
-type View = "home" | "patients" | "patient-detail" | "territory" | "address-detail" | "operations" | "database" | "optical";
+const RESULTADO_DIFUSO = 40;
+type View = "home" | "patients" | "patient-detail" | "territory" | "address-detail" | "operations" | "database" | "optical" | "faxina";
 const LOGRADOURO_PREFIX = /^\s*(?:rua|avenida|av\.?|estrada|travessa)\s+/i;
 
 function shuffled<T>(items: T[]) {
@@ -159,6 +164,14 @@ const FRASES_LEITURA = [
   "Ativando o modo turbo (mentira, é o normal)...",
 ];
 const FRASE_LEITURA_LENTA = "Isso está demorando mais do que o esperado...";
+/* Frases da tela de abertura (banco cifrado com 15 mil cadastros): a tela fica
+   sem resposta durante a leitura, então ela avisa o que está acontecendo. */
+const FRASES_CARGA = [
+  "Lendo o banco de dados salvo...",
+  "Abrindo o cadastro com segurança...",
+  "Desprotegendo os 15 mil cadastros...",
+  "Quase lá, organizando os pacientes...",
+];
 const CHAVE_MAX_LEITURA = "ocrMaxSeg";
 
 function lerMaxLeitura(): number {
@@ -248,22 +261,18 @@ function temDados(data: ClinicData) {
   return data.patients.length + data.territory.length + data.unitOperation.length > 0;
 }
 
-/* Cabeçalho: as imagens institucionais saíram; no lugar vai o texto (que era do
-   rodapé), com a versão automática e a data do arquivo mais antigo do banco.
-   Com a mudança deixou de haver rodapé. */
-function Header({ data }: { data: ClinicData }) {
+/* Cabeçalho: nome do programa na primeira linha e versão com a data do arquivo
+   mais antigo do banco na segunda. Sem bloco de fundo próprio: o texto fica
+   sobre o mesmo fundo dos botões. */
+function Header({ data, processando }: { data: ClinicData; processando?: string | null }) {
   const dataBanco = temDados(data) ? (formatarDataBanco(data.databaseDate) ?? formatarDataBanco(data.updatedAt)) : null;
   return (
     <header className="institutional-header">
+      <p className="app-name">Cadastro Clínico</p>
       <p className="app-credit">
-        Este aplicativo é uma gentileza do Maico.
-        <br />
-        Sem receber apoio, incentivo ou investimento da PMJ.
-        <br />
-        Tudo foi feito com meios próprios, aparelhos particulares, proatividade e muita IA.
-        <br />
-        Contato 11 978831938 - Versão {APP_VERSION}{dataBanco ? ` com dados de ${dataBanco}` : " sem dados importados"}.
+        Versão {APP_VERSION}{dataBanco ? ` com dados de ${dataBanco}` : " sem dados importados"}.
       </p>
+      {processando && <span className="processando-chip" role="status" aria-live="polite"><span className="faxina-spin" aria-hidden="true" />{processando}</span>}
     </header>
   );
 }
@@ -294,11 +303,12 @@ export default function Home() {
   const [selectedPatient, setSelectedPatient] = useState<ClinicData["patients"][number] | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<TerritoryEntry | null>(null);
   const [openOperation, setOpenOperation] = useState<string | null>(null);
-  const [pendingImport, setPendingImport] = useState<ClinicData | null>(null);
-  const [importInfo, setImportInfo] = useState<ReturnType<typeof summarizeImport> | null>(null);
   const [importError, setImportError] = useState("");
+  const [importMensagem, setImportMensagem] = useState("");
   type BiFileEntry = { name: string; rows: string[][]; type: BiReportType | null; count: number; lastModified?: number };
   const [biFiles, setBiFiles] = useState<BiFileEntry[]>([]);
+  const [compactadoErro, setCompactadoErro] = useState("");
+  const [importProgresso, setImportProgresso] = useState<string | null>(null);
   const biInputRef = useRef<HTMLInputElement>(null);
   const [resetMode, setResetMode] = useState(false);
   const [confirmation, setConfirmation] = useState("");
@@ -311,12 +321,24 @@ export default function Home() {
   const [passwordEditorOpen, setPasswordEditorOpen] = useState(false);
   const [passwordDraft, setPasswordDraft] = useState("");
   const [passwordNotice, setPasswordNotice] = useState("");
+  const [urlImportOpen, setUrlImportOpen] = useState(false);
+  const [urlDraft, setUrlDraft] = useState("");
   const [searchHistory, setSearchHistory] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('patientSearchHistory');
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
+  const [faxinaResultado, setFaxinaResultado] = useState<FaxinaResultado | null>(null);
+  const [faxinaRodando, setFaxinaRodando] = useState(false);
+  const [faxinaProgresso, setFaxinaProgresso] = useState<FaxinaProgresso | null>(null);
+  const [faxinaGrupo, setFaxinaGrupo] = useState<string | null>(null);
+  const [carregandoDados, setCarregandoDados] = useState(true);
+  const [falhaCarga, setFalhaCarga] = useState("");
+  const [salvando, setSalvando] = useState(false);
+  const indicadorProcesso = importProgresso ?? (salvando ? "Gravando no dispositivo…" : null);
+  const [fraseCarga, setFraseCarga] = useState(0);
+  const indiceRef = useRef<{ base: ClinicData["patients"] | null; indice: IndicePacientes | null }>({ base: null, indice: null });
   const didPush = useRef(false);
   function addToHistory(term: string) {
     if (!term.trim()) return;
@@ -421,13 +443,48 @@ export default function Home() {
   useEffect(() => {
     if (accessStep < 4) return;
     let active = true;
-    void loadPersistedData().then((saved) => {
-      if (active && saved) setData(saved);
-      if (active) setPersistenceReady(true);
+    void loadPersistedData().then(({ dados, erro }) => {
+      if (!active) return;
+      if (dados) setData(dados);
+      setFalhaCarga(erro ?? "");
+      setCarregandoDados(false);
+      setPersistenceReady(true);
     });
     return () => { active = false; };
   }, [accessStep]);
-  useEffect(() => { if (persistenceReady) void saveData(data); }, [data, persistenceReady]);
+  useEffect(() => {
+    if (!carregandoDados) return;
+    const frases = window.setInterval(() => setFraseCarga((atual) => (atual + 1) % FRASES_CARGA.length), 1700);
+    return () => window.clearInterval(frases);
+  }, [carregandoDados]);
+  useEffect(() => {
+    if (!persistenceReady) return;
+    setSalvando(true);
+    let ativo = true;
+    void saveData(data).then(() => { if (ativo) setSalvando(false); });
+    return () => { ativo = false; };
+  }, [data, persistenceReady]);
+  useEffect(() => { setFaxinaResultado(null); setFaxinaGrupo(null); setFaxinaProgresso(null); setFaxinaRodando(false); }, [data.patients]);
+  useEffect(() => {
+    if (view !== "faxina" || faxinaResultado) return;
+    let ativo = true;
+    setFaxinaRodando(true);
+    setFaxinaProgresso({ etapa: "Preparando a conferência", pct: 0 });
+    void executarFaxinaComProgresso(
+      data.patients,
+      (progresso) => { if (ativo) setFaxinaProgresso(progresso); },
+      () => !ativo,
+    ).then((resultado) => {
+      setFaxinaRodando(false);
+      setFaxinaProgresso(null);
+      if (ativo && resultado) setFaxinaResultado(resultado);
+    }).catch((erro) => {
+      console.error("faxina", erro);
+      setFaxinaRodando(false);
+      setFaxinaProgresso(null);
+    });
+    return () => { ativo = false; };
+  }, [view, faxinaResultado, data.patients]);
   useEffect(() => {
     setDebouncedQuery("");
     if (!isPatientSearchReady(query)) return;
@@ -443,29 +500,51 @@ export default function Home() {
   // espera mais a primeira foto).
   useEffect(() => { if (view === "optical") void precarregarOcr(); }, [view]);
 
+  function indicePacientes() {
+    const atual = indiceRef.current;
+    if (atual.indice && atual.base === data.patients) return atual.indice;
+    const novo = criarIndicePacientes(data.patients);
+    indiceRef.current = { base: data.patients, indice: novo };
+    return novo;
+  }
+  const pacientesPorId = useMemo(() => new Map(data.patients.map((paciente) => [paciente.id, paciente])), [data.patients]);
   const patientResults = useMemo(() => {
     if (!isPatientSearchReady(debouncedQuery)) return [];
     const numeric = numericQuery(debouncedQuery);
-    const normalized = normalizeSearch(patientSearchTerm(debouncedQuery));
+    const termo = patientSearchTerm(debouncedQuery);
+    const normalized = normalizeSearch(termo);
+    const ordem = (primeiro: ClinicData["patients"][number], segundo: ClinicData["patients"][number]) => primeiro.name.localeCompare(segundo.name, "pt-BR");
     const byName = (patient: ClinicData["patients"][number]) => normalizeSearch(patient.name).includes(normalized);
     if (numeric) {
       return data.patients.filter((patient) => {
         const registrationMatches = String(patient.registration ?? "").replace(/\D/g, "").includes(numeric);
         if (numeric.length < 4) return registrationMatches;
         return registrationMatches || [patient.cpf, patient.cns, ...patientPhones(patient)].some((value) => String(value ?? "").replace(/\D/g, "").includes(numeric));
-      }).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+      }).sort(ordem);
     }
     const logradouro = logradouroSearchTerm(debouncedQuery);
     if (logradouro) {
       const words = searchWords(logradouro);
-      return data.patients.filter((patient) => {
+      const exatos = data.patients.filter((patient) => {
         const addressWords = new Set(searchWords(patient.address));
         return words.every((word) => addressWords.has(word));
-      }).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+      }).sort(ordem);
+      if (exatos.length) return exatos;
+      return buscaDifusa(indicePacientes(), logradouro, "address", RESULTADO_DIFUSO);
     }
-    if (isMotherSearch(debouncedQuery)) return data.patients.filter((patient) => normalizeSearch(patient.mother).includes(normalized)).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-    if (addressQuery(debouncedQuery)) return data.patients.filter((patient) => addressSearchMatches(patient.address, debouncedQuery)).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-    return data.patients.filter(byName).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    if (isMotherSearch(debouncedQuery)) {
+      const exatos = data.patients.filter((patient) => normalizeSearch(patient.mother).includes(normalized)).sort(ordem);
+      if (exatos.length) return exatos;
+      return buscaDifusa(indicePacientes(), termo, "mother", RESULTADO_DIFUSO);
+    }
+    if (addressQuery(debouncedQuery)) {
+      const exatos = data.patients.filter((patient) => addressSearchMatches(patient.address, debouncedQuery)).sort(ordem);
+      if (exatos.length) return exatos;
+      return buscaDifusa(indicePacientes(), addressQuery(debouncedQuery)?.text ?? termo, "address", RESULTADO_DIFUSO);
+    }
+    const exatos = data.patients.filter(byName).sort(ordem);
+    if (exatos.length) return exatos;
+    return buscaDifusa(indicePacientes(), termo, "name", RESULTADO_DIFUSO);
   }, [data.patients, debouncedQuery]);
   const territoryResults = useMemo(() => data.territory.filter((entry) => territoryMatches(entry, streetQuery)), [data.territory, streetQuery]);
   const operationItems = useMemo(() => [...data.unitOperation].sort((a, b) => a.title.localeCompare(b.title, "pt-BR")), [data.unitOperation]);
@@ -507,60 +586,162 @@ export default function Home() {
       setCopyMessage("Informações copiadas.");
     } catch { setCopyMessage("Não foi possível copiar agora."); }
   }
+  async function lerBiEntries(files: File[]): Promise<BiFileEntry[]> {
+    const entries: BiFileEntry[] = [];
+    for (const file of files) {
+      const rows = parseBiCsv(await readBiFileText(file));
+      const type = detectBiReport(file.name, rows);
+      const count = !type ? 0 : type === "equipes" ? mapEquipesRows(rows).length : mapBiRows(type, rows).length;
+      entries.push({ name: file.name, rows, type, count, lastModified: file.lastModified });
+    }
+    return entries;
+  }
+  // Devolve o controle ao navegador para o indicador de progresso pintar antes
+  // do próximo bloco pesado de CPU (parse/mapeamento são síncronos).
+  function aguardarQuadro() { return new Promise<void>((resolve) => window.setTimeout(resolve, 0)); }
   async function handleBiFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
     event.target.value = "";
     if (!files.length) return;
     setImportError("");
+    setImportMensagem("");
+    setCompactadoErro("");
+    const compactados = files.filter((file) => /\.(rar|zip)$/i.test(file.name));
+    const diretos = files.filter((file) => !/\.(rar|zip)$/i.test(file.name));
     try {
-      const entries: BiFileEntry[] = [];
-      for (const file of files) {
-        const rows = parseBiCsv(await readBiFileText(file));
-        const type = detectBiReport(file.name, rows);
-        const count = !type ? 0 : type === "equipes" ? mapEquipesRows(rows).length : mapBiRows(type, rows).length;
-        entries.push({ name: file.name, rows, type, count, lastModified: file.lastModified });
+      const entradas: BiFileEntry[] = [];
+      for (let indice = 0; indice < diretos.length; indice += 1) {
+        setImportProgresso(`Lendo ${indice + 1}/${diretos.length}: ${diretos[indice].name}`);
+        await aguardarQuadro();
+        entradas.push(...await lerBiEntries([diretos[indice]]));
       }
-      if (!entries.length) return;
-      setBiFiles((prev) => [...prev.filter((old) => !entries.some((a) => a.name === old.name)), ...entries]);
-    } catch (reason) { setImportError(reason instanceof Error ? reason.message : "Não foi possível ler os CSVs."); }
+      if (compactados.length) entradas.push(...await processarCompactados(compactados));
+      if (!entradas.length) { setImportError("Nenhum arquivo legível na seleção."); return; }
+      // Fluxo único: a seleção é o banco novo. Tudo reconhecido => importa sozinho,
+      // sem tela de resumo nem confirmação. Se algo não for reconhecido, aí sim a
+      // lista aparece pedindo o tipo — e a importação segue sozinha ao terminar.
+      if (entradas.every((entrada) => entrada.type)) await importBiReports(entradas);
+      else setBiFiles(entradas);
+    } catch (reason) { setImportError(reason instanceof Error ? reason.message : "Não foi possível ler os arquivos."); }
+    finally { setImportProgresso(null); }
+  }
+  async function processarCompactados(arquivos: File[]): Promise<BiFileEntry[]> {
+    setCompactadoErro("");
+    const erros: string[] = [];
+    const entradas: BiFileEntry[] = [];
+    try {
+      for (let indice = 0; indice < arquivos.length; indice += 1) {
+        const arquivo = arquivos[indice];
+        const ehRar = /\.rar$/i.test(arquivo.name);
+        setImportProgresso(`Extraindo ${indice + 1}/${arquivos.length}: ${arquivo.name}`);
+        await aguardarQuadro();
+        try {
+          const extraidos = ehRar
+            ? await extractRarFiles(await arquivo.arrayBuffer())
+            : await extractZipFiles(await arquivo.arrayBuffer());
+          const encontrados = extraidos.filter((file) => /\.(csv|tsv|txt)$/i.test(file.name));
+          if (!encontrados.length) erros.push(`${arquivo.name}: sem arquivos .csv, .tsv ou .txt dentro.`);
+          for (const texto of encontrados) {
+            setImportProgresso(`Lendo ${arquivo.name} → ${texto.name}`);
+            await aguardarQuadro();
+            entradas.push(...await lerBiEntries([texto]));
+          }
+        } catch (reason) {
+          erros.push(`${arquivo.name}: ${ehRar ? rarErrorMessage(reason) : zipErrorMessage(reason)}`);
+        }
+      }
+      setCompactadoErro(erros.join(" "));
+      return entradas;
+    } catch (reason) { setCompactadoErro(reason instanceof Error ? reason.message : "Não foi possível ler os arquivos compactados."); return entradas; }
+  }
+  // Importa um arquivo (.rar/.zip/.csv) direto de uma URL — o app baixa, extrai
+  // com a senha automática e importa, tudo em memória. O usuário só cola o link.
+  async function importarDaUrl() {
+    const url = urlDraft.trim();
+    if (!url) return;
+    setImportError("");
+    setImportMensagem("");
+    setCompactadoErro("");
+    setUrlImportOpen(false);
+    try {
+      setImportProgresso("Baixando arquivo…");
+      await aguardarQuadro();
+      const resposta = await fetch(url);
+      if (!resposta.ok) throw new Error(`Servidor respondeu ${resposta.status}. Verifique o link.`);
+      const blob = await resposta.blob();
+      const nome = decodeURIComponent((url.split("?")[0].split("#")[0].split("/").pop() || "arquivo.rar"));
+      const arquivo = new File([blob], nome, { type: blob.type || "application/octet-stream" });
+      const entradas = await processarCompactados([arquivo]);
+      if (!entradas.length) return;
+      if (entradas.every((entrada) => entrada.type)) await importBiReports(entradas);
+      else setBiFiles(entradas);
+    } catch (reason) { setImportError(reason instanceof Error ? reason.message : "Não foi possível baixar o arquivo do link."); }
+    finally { setImportProgresso(null); setUrlDraft(""); }
   }
   function assignBiType(name: string, type: BiReportType | "") {
-    setBiFiles((prev) => prev.map((e) => e.name === name ? { ...e, type: type || null, count: !type ? 0 : type === "equipes" ? mapEquipesRows(e.rows).length : mapBiRows(type as BiReportType, e.rows).length } : e));
+    const atualizadas = biFiles.map((e) => e.name === name ? { ...e, type: type || null, count: !type ? 0 : type === "equipes" ? mapEquipesRows(e.rows).length : mapBiRows(type as BiReportType, e.rows).length } : e);
+    setBiFiles(atualizadas);
+    if (atualizadas.length && atualizadas.every((e) => e.type)) void importBiReports(atualizadas);
   }
-  function importBiReports() {
-    const recognized = biFiles.filter((e): e is BiFileEntry & { type: BiReportType } => Boolean(e.type));
-    if (!recognized.length) { setImportError("Nenhum relatório reconhecido. Escolha os 4 CSVs."); return; }
-    const patientTypes: BiReportType[] = ["s1","s2","s3"];
-    const patientRecords = recognized.filter((e) => patientTypes.includes(e.type)).flatMap((e) => mapBiRows(e.type as "s1"|"s2"|"s3", e.rows));
-    const equipesEntries = recognized.filter((e) => e.type === "equipes").flatMap((e) => mapEquipesRows(e.rows));
-    const patients = patientRecords.length ? mergeBiPatients(patientRecords) : [];
-    if (!patients.length && !equipesEntries.length) { setImportError("Os arquivos não continham dados válidos."); return; }
-    // Data do arquivo mais antigo entre os 3 que podem ser usados como banco de dados.
-    const datasCsv = recognized
-      .filter((e) => patientTypes.includes(e.type) && typeof e.lastModified === "number" && e.lastModified > 0)
-      .map((e) => dataLocalIso(e.lastModified as number));
-    const incoming: ClinicData = {
-      schemaVersion: 1,
-      updatedAt: new Date().toISOString(),
-      databaseDate: maisAntiga(data.databaseDate, datasCsv.length ? datasCsv.reduce((a, b) => (a <= b ? a : b)) : undefined),
-      patients: patients.length ? patients : data.patients,
-      territory: equipesEntries.length ? equipesEntries : data.territory,
-      unitOperation: data.unitOperation,
-      branding: data.branding,
-    };
-    // Se só equipes, mantém pacientes atuais mas atualiza território; se só pacientes, mantém território
-    if (patientRecords.length && equipesEntries.length) {
-      incoming.patients = patients;
-      incoming.territory = equipesEntries;
-    } else if (equipesEntries.length) {
-      incoming.patients = data.patients;
-      incoming.territory = equipesEntries;
+  function removerBiEntry(name: string) {
+    const restantes = biFiles.filter((p) => p.name !== name);
+    setBiFiles(restantes);
+    if (restantes.length && restantes.every((e) => e.type)) void importBiReports(restantes);
+  }
+  // Importação em fluxo único: ao final os dados já estão no lugar — sem tela de
+  // resumo e sem confirmação. O banco é espelho descartável: a seleção atual
+  // SUBSTITUI o banco inteiro (nada do banco anterior entra na conta). Só as
+  // configurações locais (marca, operação da unidade, semente de território)
+  // sobrevivem, por não serem espelho.
+  const importandoRef = useRef(false);
+  async function importBiReports(lista: BiFileEntry[]) {
+    if (importandoRef.current) return;
+    const recognized = lista.filter((e): e is BiFileEntry & { type: BiReportType } => Boolean(e.type));
+    if (!recognized.length) { setImportError("Nenhum relatório reconhecido."); return; }
+    const patientTypes: BiReportType[] = ["s1","s2","s3","s4"];
+    const patientRecords: ReturnType<typeof mapBiRows> = [];
+    const equipesEntries: ReturnType<typeof mapEquipesRows> = [];
+    importandoRef.current = true;
+    try {
+      for (let indice = 0; indice < recognized.length; indice += 1) {
+        const arquivo = recognized[indice];
+        setImportProgresso(`Preparando ${indice + 1}/${recognized.length}: ${arquivo.name}`);
+        await aguardarQuadro();
+        if (patientTypes.includes(arquivo.type)) patientRecords.push(...mapBiRows(arquivo.type, arquivo.rows));
+        else equipesEntries.push(...mapEquipesRows(arquivo.rows));
+      }
+      setImportProgresso("Unindo os cadastros…");
+      await aguardarQuadro();
+      const patients = patientRecords.length ? mergeBiPatients(patientRecords) : [];
+      if (!patients.length && !equipesEntries.length) { setImportError("Os arquivos não continham dados válidos."); return; }
+      const datasCsv = recognized
+        .filter((e) => patientTypes.includes(e.type) && typeof e.lastModified === "number" && e.lastModified > 0)
+        .map((e) => dataLocalIso(e.lastModified as number));
+      const incoming: ClinicData = {
+        schemaVersion: 1,
+        updatedAt: new Date().toISOString(),
+        databaseDate: datasCsv.length ? datasCsv.reduce((a, b) => (a <= b ? a : b)) : undefined,
+        territorySeedRevision: data.territorySeedRevision,
+        patients,
+        territory: equipesEntries,
+        unitOperation: data.unitOperation,
+        branding: data.branding,
+      };
+      setImportProgresso("Aplicando no programa…");
+      await aguardarQuadro();
+      setBiFiles([]);
+      setResetMode(false);
+      setImportError("");
+      setData(incoming);
+      setImportMensagem(`Importação concluída — banco substituído: ${patients.length} paciente(s)${equipesEntries.length ? ` e ${equipesEntries.length} rua(s)` : ""}.`);
+    } catch (reason) {
+      setImportError(reason instanceof Error ? reason.message : "Falha ao importar os arquivos.");
+    } finally {
+      importandoRef.current = false;
+      setImportProgresso(null);
     }
-    setBiFiles([]);
-    setPendingImport(incoming); setImportInfo(summarizeImport(data, incoming)); setResetMode(false); setImportError("");
   }
-  function confirmImport() { if (!pendingImport) return; setData(mergeData(data, pendingImport)); setPendingImport(null); setImportInfo(null); }
-  function confirmReset() { if (confirmation.trim().toLocaleLowerCase("pt-BR") !== "confirmar") return; void resetData(); setData({ ...emptyData, updatedAt: new Date().toISOString() }); setConfirmation(""); setResetMode(false); }
+  function confirmReset() { if (confirmation.trim().toLocaleLowerCase("pt-BR") !== "confirmar") return; void resetData(); setData({ ...emptyData, updatedAt: new Date().toISOString() }); setConfirmation(""); setResetMode(false); setImportMensagem(""); }
   function chooseAccessOption(option: string) {
     if (accessFailed) { setAccessFailed(false); setAccessOptions(createAccessOptions(accessPassword?.[accessStep])); return; }
     const expected = accessPassword?.[accessStep] ?? "";
@@ -585,12 +766,16 @@ export default function Home() {
     setPasswordEditorOpen(false);
     setPasswordNotice("Senha removida. O aplicativo abrirá sem senha.");
   }
-  if (accessStep < 4) return <div className="app-shell access-shell"><Header data={data} /><main className="main-content access-main"><section className="access-card"><div className="access-options">{accessOptions.map((option, index) => <button key={`${option}-${index}`} onClick={() => chooseAccessOption(option)}>{option}</button>)}</div></section></main></div>;
+  if (accessStep < 4) return <div className="app-shell access-shell"><Header data={data} processando={indicadorProcesso?.split(":")[0] ?? null} /><main className="main-content access-main"><section className="access-card"><div className="access-options">{accessOptions.map((option, index) => <button key={`${option}-${index}`} onClick={() => chooseAccessOption(option)}>{option}</button>)}</div></section></main></div>;
 
-  return <div className="app-shell"><Header data={data} /><main className="main-content">
-    {view === "home" && <section className="home-actions"><button onClick={() => openProtectedView("patients")}><Search size={28} /><span>ENCONTRAR PACIENTE</span><ChevronRight size={24} /></button><button onClick={() => { void precarregarOcr(); openProtectedView("optical"); }}><Camera size={28} /><span>BUSCADOR ÓPTICO</span><ChevronRight size={24} /></button><button onClick={() => openProtectedView("territory")}><MapPin size={28} /><span>NOSSO TERRITÓRIO</span><ChevronRight size={24} /></button><button onClick={() => openProtectedView("operations")}><Building2 size={28} /><span>FUNCIONAMENTO DA UNIDADE</span><ChevronRight size={24} /></button><button onClick={openDatabase}><Database size={28} /><span>BANCO DE DADOS</span><ChevronRight size={24} /></button></section>}
+  return <div className="app-shell">
+    {carregandoDados && <div className="boot-overlay" role="status" aria-live="polite"><div className="boot-card"><span className="boot-spinner" /><strong>Carregando o banco de dados</strong><p>{FRASES_CARGA[fraseCarga % FRASES_CARGA.length]}</p></div></div>}
+    {salvando && <div className="save-chip" role="status">Salvando alterações...</div>}
+    <Header data={data} processando={indicadorProcesso?.split(":")[0] ?? null} /><main className="main-content">
+    {falhaCarga && <div className="status-box error load-error">Não foi possível abrir o banco salvo: {falhaCarga}. Os cadastros exibidos podem estar desatualizados.</div>}
+    {view === "home" && <section className="home-actions"><button onClick={() => openProtectedView("patients")}><Search size={28} /><span>ENCONTRAR PACIENTE</span><ChevronRight size={24} /></button><button onClick={() => { void precarregarOcr(); openProtectedView("optical"); }}><Camera size={28} /><span>BUSCADOR ÓPTICO</span><ChevronRight size={24} /></button><button onClick={() => openProtectedView("territory")}><MapPin size={28} /><span>NOSSO TERRITÓRIO</span><ChevronRight size={24} /></button><button onClick={() => openProtectedView("operations")}><Building2 size={28} /><span>FUNCIONAMENTO DA UNIDADE</span><ChevronRight size={24} /></button><button onClick={openDatabase}><Database size={28} /><span>BANCO DE DADOS</span><ChevronRight size={24} /></button><button onClick={() => openProtectedView("faxina")}><Sparkles size={28} /><span>FAXINA</span><ChevronRight size={24} /></button></section>}
 
-    {view === "patients" && <section className="screen"><Back go={back} /><h1>Encontrar paciente</h1><div className="universal-search"><Search size={22} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome, CNS ou endereço" autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} />{query && <button className="clear-search" aria-label="Limpar busca" onClick={() => { setQuery(""); setDebouncedQuery(""); }}><X size={20} /></button>}</div>{!query && searchHistory.length > 0 && <div className="search-history"><div className="history-title"><RotateCcw size={16} /><span>Buscas recentes</span></div><div className="history-list">{searchHistory.map((term, index) => (<button key={`${term}-${index}`} className="history-item" onClick={() => setQuery(term)}><Search size={16} /><span>{term}</span></button>))}</div></div>}{Boolean(debouncedQuery) && <><Pager page={patientPage} totalPages={patientPages} onChange={setPatientPage} /><div className="result-list">{visiblePatients.map((patient) => { const team = teamForAddress(patient.address, data.territory); return <button className="result-card" key={patient.id} onClick={() => openPatient(patient)}><span className="avatar-letter" style={{ background: team?.team.color ?? "#617787", color: teamTextColor(team?.team), borderColor: team?.team.name === "Margarida" ? "#123b67" : "transparent" }}>{team?.team.name?.charAt(0).toUpperCase() ?? "?"}</span><span><strong>{patient.name}</strong><small>{patient.address}</small></span><ChevronRight size={20} /></button>; })}{patientResults.length === 0 && <div className="empty-line">Nenhum resultado</div>}</div></>}</section>}
+    {view === "patients" && <section className="screen"><Back go={back} /><h1>Encontrar paciente</h1><div className="universal-search"><Search size={22} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome, CNS ou endereço" autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} />{query && <button className="clear-search" aria-label="Limpar busca" onClick={() => { setQuery(""); setDebouncedQuery(""); }}><X size={20} /></button>}</div>{!query && searchHistory.length > 0 && <div className="search-history"><div className="history-title"><RotateCcw size={16} /><span>Buscas recentes</span></div><div className="history-list">{searchHistory.map((term, index) => (<button key={`${term}-${index}`} className="history-item" onClick={() => setQuery(term)}><Search size={16} /><span>{term}</span></button>))}</div></div>}{query.trim() && query !== debouncedQuery && <div className="search-wait" role="status">Buscando...</div>}{Boolean(debouncedQuery) && <><Pager page={patientPage} totalPages={patientPages} onChange={setPatientPage} /><div className="result-list">{visiblePatients.map((patient) => { const team = teamForAddress(patient.address, data.territory); return <button className="result-card" key={patient.id} onClick={() => openPatient(patient)}><span className="avatar-letter" style={{ background: team?.team.color ?? "#617787", color: teamTextColor(team?.team), borderColor: team?.team.name === "Margarida" ? "#123b67" : "transparent" }}>{team?.team.name?.charAt(0).toUpperCase() ?? "?"}</span><span><strong>{patient.name}</strong><small>{patient.address}</small></span><ChevronRight size={20} /></button>; })}{patientResults.length === 0 && <div className="empty-line">Nenhum resultado</div>}</div></>}</section>}
 
     {view === "optical" && <section className="screen narrow"><Back go={back} /><h1>Buscador óptico</h1><div className="ocr-actions"><button onClick={() => ocrFileRef.current?.click()}><FileUp size={20} /> ENVIAR FOTO</button><button onClick={() => ocrCameraRef.current?.click()}><Camera size={20} /> ABRIR CÂMERA</button></div><input ref={ocrFileRef} type="file" accept="image/*" className="visually-hidden" onChange={aoEscolherFoto} /><input ref={ocrCameraRef} type="file" accept="image/*" capture="environment" className="visually-hidden" onChange={aoEscolherFoto} />{ocrPreview && <div className="ocr-prev"><img src={ocrPreview} alt="Documento selecionado" /></div>}<button className="ocr-scan" disabled={!ocrPhoto || ocrBusy} onClick={() => void lerFoto()}>{ocrBusy ? "LENDO…" : "🔍 LER TEXTO DA FOTO"}</button>{ocrBusy && <div className="ocr-bar"><span className="ocr-status">{ocrStatus || FRASES_LEITURA[0]}</span><div className="ocr-track"><div className="ocr-fill" style={{ width: `${ocrProg}%` }} /></div></div>}{ocrError && !ocrBusy && <div className="ocr-error">{ocrError}</div>}{ocrCampos && !ocrBusy && (ocrLinhas.length ? <div className="ocr-ok">Reconheceu: {ocrLinhas.map(([label, value]) => `${label} ${value}`).join(" · ")}</div> : <div className="empty-line">Nenhum campo reconhecido. Tente outra foto com mais luz e sem sombras.</div>)}{ocrCampos && !ocrBusy && (ocrResults.length ? <div className="result-list">{ocrResults.map((item) => { const team = teamForAddress(item.patient.address, data.territory); return <button className="result-card" key={item.patient.id} onClick={() => openPatient(item.patient)}><span className="avatar-letter" style={{ background: team?.team.color ?? "#617787", color: teamTextColor(team?.team), borderColor: team?.team.name === "Margarida" ? "#123b67" : "transparent" }}>{team?.team.name?.charAt(0).toUpperCase() ?? "?"}</span><span><strong>{item.patient.name}</strong><small>{[item.patient.address, `achei pelo ${item.via.toLowerCase()}`].filter(Boolean).join(" · ")}</small></span><ChevronRight size={20} /></button>; })}</div> : <div className="empty-line">Nenhum morador encontrado com os dados da foto.</div>)}{ocrError && <div className="tool-message">{ocrError}</div>}{ocrPhoto && <button className="ocr-clear" onClick={limparFoto}>LIMPAR</button>}</section>}
 
@@ -611,7 +796,36 @@ export default function Home() {
 
     {view === "operations" && <section className="screen narrow"><Back go={back} /><h1>Funcionamento da unidade</h1><div className="accordion-list">{operationItems.map((item) => <div key={item.title} className={openOperation === item.title ? "accordion open" : "accordion"}><button onClick={() => setOpenOperation(openOperation === item.title ? null : item.title)}><span>{item.title}</span><ChevronDown size={22} /></button>{openOperation === item.title && <div className="accordion-content">{item.text}</div>}</div>)}</div></section>}
 
-    {view === "database" && <section className="screen narrow"><Back go={back} /><h1>Banco de dados</h1><div className="data-actions"><label className="import-button"><FileUp size={23} /> IMPORTAR CSVs (4)<input ref={biInputRef} type="file" accept=".csv,.txt,text/csv,text/plain,application/vnd.ms-excel" multiple className="visually-hidden" onChange={handleBiFiles} /></label><button className="password-button" onClick={() => { setPasswordEditorOpen((value) => !value); setPasswordNotice(""); setPasswordDraft(""); }}><KeyRound size={22} /> {accessPassword ? "TROCAR SENHA" : "DEFINIR SENHA"}</button><button className="reset-button" onClick={() => { setResetMode(true); setPendingImport(null); setImportError(""); }}><RotateCcw size={22} /> REINICIAR</button></div>{biFiles.length > 0 && <div className="status-box"><h2>Arquivos do BI</h2>{biFiles.map((e) => <div key={e.name} style={{display:"flex",gap:"8px",alignItems:"center",flexWrap:"wrap",marginTop:"8px"}}><span style={{fontWeight:700}}>{e.type ? "✔" : "?"}</span><strong>{e.name}</strong>{e.type ? <span>{BI_REPORT_LABELS[e.type]} · {e.count} registro(s)</span> : <><span>Não reconhecido</span><select value="" onChange={(ev) => assignBiType(e.name, ev.target.value as BiReportType | "")}><option value="">— escolher tipo —</option>{(Object.keys(BI_REPORT_LABELS) as BiReportType[]).map((k) => <option key={k} value={k}>{BI_REPORT_LABELS[k]}</option>)}</select></>}<button onClick={() => setBiFiles((p) => p.filter((x) => x.name !== e.name))}>Remover</button></div>)}<div style={{marginTop:"10px"}}><button disabled={!biFiles.some((x) => x.type)} onClick={importBiReports}>UNIR E IMPORTAR</button></div></div>}{passwordNotice && <div className="status-box">{passwordNotice}</div>}{passwordEditorOpen && <div className="status-box reset-confirm"><h2>{accessPassword ? "Escolha uma nova senha" : "Escolha uma senha"}</h2><p className="password-setup-help">A senha é opcional: você decide se quer usar. Escolha 4 caracteres (maiúsculas e números de 1 a 9) — serão pedidos na próxima abertura. Enquanto não definir, o aplicativo abre direto.</p><input value={passwordDraft} onChange={(event) => setPasswordDraft(event.target.value.toUpperCase().replace(/[^A-Z1-9]/g, "").slice(0, 4))} maxLength={4} placeholder="A1B2" autoComplete="off" autoCapitalize="characters" autoCorrect="off" spellCheck={false} /><div className="confirm-actions"><button disabled={!isValidAccessPassword(passwordDraft)} onClick={saveChosenPassword}>SALVAR SENHA</button>{accessPassword && <button onClick={removeChosenPassword}>REMOVER SENHA</button>}<button onClick={() => { setPasswordEditorOpen(false); setPasswordDraft(""); }}>CANCELAR</button></div></div>}{importError && <div className="status-box error">{importError}</div>}{pendingImport && importInfo && <div className="status-box"><h2>Confirmar atualização?</h2><div className="status-grid"><span>Novos pacientes <strong>{importInfo.newPatients}</strong></span><span>Pacientes alterados <strong>{importInfo.changedPatients}</strong></span><span>Novas ruas <strong>{importInfo.newTerritory}</strong></span><span>Ruas alteradas <strong>{importInfo.changedTerritory}</strong></span><span>Duplicidades ignoradas <strong>{importInfo.duplicatePatients + importInfo.duplicateTerritory}</strong></span></div><div className="confirm-actions"><button onClick={confirmImport}>CONFIRMAR ATUALIZAÇÃO</button><button onClick={() => { setPendingImport(null); setImportInfo(null); }}>CANCELAR</button></div></div>}{resetMode && <div className="status-box reset-confirm"><h2>Reiniciar banco de dados?</h2><input 
+    {view === "faxina" && <section className="screen">
+      <Back go={back} />
+      <h1>Faxina</h1>
+      <p className="ocr-hint">Conferência automática dos {data.patients.length} cadastros: CPF, CNS, cadastro, cruzamentos, demografia, similaridade, fonética, inversão e estatísticas. Aqui é só leitura — nada é alterado no banco.</p>
+      {faxinaRodando && !faxinaResultado && <div className="status-box faxina-progresso" role="status" aria-live="polite">
+        <div className="faxina-progresso-topo"><span className="faxina-spin" aria-hidden="true" /><strong>{faxinaProgresso?.etapa ?? "Analisando os cadastros"}</strong><em>{faxinaProgresso ? `${faxinaProgresso.pct}%` : "0%"}</em></div>
+        <div className="faxina-barra"><span style={{ width: `${faxinaProgresso?.pct ?? 0}%` }} /></div>
+        <p>Conferindo {data.patients.length} cadastros — a tela continua viva e o relatório aparece assim que terminar.</p>
+      </div>}
+      {!faxinaRodando && !faxinaResultado && <button className="faxina-iniciar" onClick={() => setFaxinaResultado(null)}>ANALISAR AGORA</button>}
+      {faxinaResultado && <>
+        <div className="faxina-resumo">
+          <div className="faxina-pipeline"><h2>10 · Pipeline de decisão</h2><div className="faxina-chips">{faxinaResultado.resumo.ordemPipeline.filter((item) => item.total > 0).map((item) => <span key={item.severidade} className={`faxina-chip sev-${item.severidade}`}>{ROTULO_SEVERIDADE[item.severidade]}: {item.total}</span>)}</div></div>
+          <div className="faxina-grupos-chips">{FAXINA_GRUPOS.filter((grupo) => faxinaResultado.resumo.porGrupo[grupo.id] > 0 || faxinaGrupo === grupo.id).map((grupo) => <button key={grupo.id} className={faxinaGrupo === grupo.id ? "faxina-chip on" : "faxina-chip"} onClick={() => setFaxinaGrupo(faxinaGrupo === grupo.id ? null : grupo.id)}>{grupo.numero} · {grupo.titulo} ({faxinaResultado.resumo.porGrupo[grupo.id]})</button>)}</div>
+          <button className="faxina-refazer" onClick={() => setFaxinaResultado(null)}>ANALISAR NOVAMENTE</button>
+        </div>
+        {faxinaResultado.resumo.totalAchados === 0 && <div className="empty-line">Nada suspeito encontrado neste banco.</div>}
+        {FAXINA_GRUPOS.filter((grupo) => (!faxinaGrupo || faxinaGrupo === grupo.id) && faxinaResultado.resumo.porGrupo[grupo.id] > 0).map((grupo) => <div className="faxina-grupo" key={grupo.id}>
+          <div className="faxina-grupo-titulo"><span>{grupo.numero}</span><strong>{grupo.titulo}</strong><em>{faxinaResultado.resumo.porGrupo[grupo.id]}</em></div>
+          <p className="faxina-descricao">{grupo.descricao}</p>
+          <div className="faxina-lista">{faxinaResultado.achados.filter((achado) => achado.grupo === grupo.id).map((achado) => <div className="faxina-item" key={achado.id}>
+            <div className="faxina-item-topo"><span className={`faxina-sev sev-${achado.severidade}`}>{ROTULO_SEVERIDADE[achado.severidade]}</span><strong>{achado.titulo}</strong><small>regra {achado.regra}</small></div>
+            <p className="faxina-motivo">{achado.motivo}</p>
+            <div className="faxina-pessoas">{achado.ids.slice(0, 8).map((id) => { const paciente = pacientesPorId.get(id); return paciente ? <button key={id} onClick={() => openPatient(paciente)}>{paciente.name}</button> : null; })}{achado.total > 8 && <span>+{achado.total - 8} pacientes</span>}</div>
+          </div>)}</div>
+        </div>)}
+      </>}
+    </section>}
+
+    {view === "database" && <section className="screen narrow"><Back go={back} /><h1>Banco de dados</h1><div className="data-actions"><label className="import-button"><FileUp size={23} /> IMPORTAR<input ref={biInputRef} type="file" accept=".csv,.tsv,.txt,.zip,.rar,application/zip,application/x-zip-compressed,application/vnd.rar,application/x-rar-compressed,application/x-rar,application/rar,application/octet-stream,text/csv,text/plain,text/tab-separated-values,application/vnd.ms-excel" multiple className="visually-hidden" disabled={Boolean(indicadorProcesso)} onChange={handleBiFiles} /></label><button className="password-button" disabled={Boolean(indicadorProcesso)} onClick={() => { setUrlImportOpen(true); setUrlDraft(""); setImportError(""); }}><Globe size={22} /> IMPORTAR DA URL</button><button className="password-button" onClick={() => { setPasswordEditorOpen((value) => !value); setPasswordNotice(""); setPasswordDraft(""); }}><KeyRound size={22} /> {accessPassword ? "TROCAR SENHA" : "DEFINIR SENHA"}</button><button className="reset-button" onClick={() => { setResetMode(true); setImportError(""); }}><RotateCcw size={22} /> REINICIAR</button></div>{indicadorProcesso && <div className="status-box" role="status" aria-live="polite"><div className="faxina-progresso-topo"><span className="faxina-spin" aria-hidden="true" /><strong>{indicadorProcesso}</strong></div></div>}{compactadoErro && <div className="status-box error">{compactadoErro}</div>}{biFiles.length > 0 && <div className="status-box"><h2>Arquivos selecionados</h2><p className="ocr-hint">Escolha o tipo dos arquivos com "?" para a importação continuar sozinha. Ao terminar, esta seleção substitui o banco inteiro.</p>{biFiles.map((e) => <div key={e.name} style={{display:"flex",gap:"8px",alignItems:"center",flexWrap:"wrap",marginTop:"8px"}}><span style={{fontWeight:700}}>{e.type ? "✔" : "?"}</span><strong>{e.name}</strong>{e.type ? <span>{BI_REPORT_LABELS[e.type]} · {e.count} registro(s)</span> : <><span>Não reconhecido</span><select value="" onChange={(ev) => assignBiType(e.name, ev.target.value as BiReportType | "")}><option value="">— escolher tipo —</option>{(Object.keys(BI_REPORT_LABELS) as BiReportType[]).map((k) => <option key={k} value={k}>{BI_REPORT_LABELS[k]}</option>)}</select></>}<button onClick={() => removerBiEntry(e.name)}>Remover</button></div>)}</div>}{passwordNotice && <div className="status-box">{passwordNotice}</div>}{passwordEditorOpen && <div className="status-box reset-confirm"><h2>{accessPassword ? "Escolha uma nova senha" : "Escolha uma senha"}</h2><p className="password-setup-help">A senha é opcional: você decide se quer usar. Escolha 4 caracteres (maiúsculas e números de 1 a 9) — serão pedidos na próxima abertura. Enquanto não definir, o aplicativo abre direto.</p><input value={passwordDraft} onChange={(event) => setPasswordDraft(event.target.value.toUpperCase().replace(/[^A-Z1-9]/g, "").slice(0, 4))} maxLength={4} placeholder="A1B2" autoComplete="off" autoCapitalize="characters" autoCorrect="off" spellCheck={false} /><div className="confirm-actions"><button disabled={!isValidAccessPassword(passwordDraft)} onClick={saveChosenPassword}>SALVAR SENHA</button>{accessPassword && <button onClick={removeChosenPassword}>REMOVER SENHA</button>}<button onClick={() => { setPasswordEditorOpen(false); setPasswordDraft(""); }}>CANCELAR</button></div></div>}{urlImportOpen && <div className="status-box reset-confirm"><h2>Importar da internet</h2><p className="password-setup-help">Cole o link do arquivo (.rar, .zip ou .csv) publicado na internet. O aplicativo baixa e importa sozinho — a senha é automática.</p><input value={urlDraft} onChange={(event) => setUrlDraft(event.target.value)} placeholder="https://…/dados.rar" autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} inputMode="url" /><div className="confirm-actions"><button disabled={!urlDraft.trim() || Boolean(indicadorProcesso)} onClick={importarDaUrl}>BAIXAR E IMPORTAR</button><button onClick={() => { setUrlImportOpen(false); setUrlDraft(""); }}>CANCELAR</button></div></div>}{importError && <div className="status-box error">{importError}</div>}{importMensagem && <div className="status-box" role="status">{importMensagem}</div>}{resetMode && <div className="status-box reset-confirm"><h2>Reiniciar banco de dados?</h2><input 
   value={confirmation} 
   onChange={(event) => setConfirmation(event.target.value)} 
   placeholder="Digite confirmar" 

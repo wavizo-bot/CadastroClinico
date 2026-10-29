@@ -5,17 +5,15 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# --- Contexto: alerta "OTIMIZACAO DEX" do Google Play Console (exigencia) ---
+# O Play Console emite um cartao vermelho "Requer atencao" quando a otimizacao
+# de codigo DEX fica abaixo do limite (ex.: "Ofuscação (1%). Valores abaixo de
+# 25%..."), o que afeta visibilidade/publicacao. Para satisfazer: build.gradle
+# usa proguard-android-optimize.txt (otimizacao real de DEX, nao so ofuscacao) e
+# minifyEnabled + shrinkResources = true. Este arquivo guarda as regras proprio
+# do app. Detalhes em log.txt (secao 15/10/2026 - ALERTA "OTIMIZACAO DEX").
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# --- Desofuscacao de stack traces no Play Console ---
+# Necessario com R8 ativo: mantem arquivo/linha nos relatorios de falha para o
+# Play Console desofuscar com o mapping.txt (proguard.map embutido no AAB).
+-keepattributes SourceFile,LineNumberTable

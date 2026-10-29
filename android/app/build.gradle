@@ -1,13 +1,29 @@
-apply plugin: 'com.android.application'
+    apply plugin: 'com.android.application'
+
+// Credenciais do keystore: lidas de android/keystore.properties (NAO versionado,
+// ver .gitignore) ou de variaveis de ambiente (CI). NUNCA hardcodar no build.gradle
+// — regras 3.1 / GH1.3 (o repo e publico).
+def keystorePropsFile = rootProject.file('keystore.properties')
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) { keystorePropsFile.withInputStream { keystoreProps.load(it) } }
+def ksStoreFile = keystoreProps.getProperty('storeFile') ?: System.getenv('CADCLINICO_STORE_FILE') ?: 'keystore/cadclinico-upload.keystore'
+def ksStorePassword = keystoreProps.getProperty('storePassword') ?: System.getenv('CADCLINICO_STORE_PASSWORD')
+def ksKeyAlias = keystoreProps.getProperty('keyAlias') ?: System.getenv('CADCLINICO_KEY_ALIAS') ?: 'cadclinico-upload'
+def ksKeyPassword = keystoreProps.getProperty('keyPassword') ?: System.getenv('CADCLINICO_KEY_PASSWORD')
 
 // Upload signing for Google Play (keystore under android/keystore)
 android {
     signingConfigs {
         release {
-            storeFile rootProject.file('keystore/cadclinico-upload.keystore')
-            storePassword '***REMOVED***'
-            keyAlias 'cadclinico-upload'
-            keyPassword '***REMOVED***'
+            // CHAVE DE UPLOAD DO CADASTRO CLINICO (SHA1 BE:FA:A2:26:67:A5:B6:81:7E:
+            // C6:61:AB:8A:86:68:B9:C1:2C:62:E4) - e ESTA chave que o Play exige no
+            // slot do Cadastro Clinico. A do Acompanha Digital (SHA1 F1:D4:...) e
+            // OUTRA: em 15/10/2026 este AAB foi parar no slot errado (do Acompanha)
+            // e o Play rejeitou exigindo o F1:D4. Nunca trocar a chave deste projeto.
+            storeFile rootProject.file(ksStoreFile)
+            storePassword ksStorePassword
+            keyAlias ksKeyAlias
+            keyPassword ksKeyPassword
         }
     }
     namespace = "com.cadclinico.app"
@@ -16,8 +32,8 @@ android {
         applicationId "com.cadclinico.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "1.0.2"
+        versionCode 19
+        versionName "1.0.15"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -30,9 +46,14 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             signingConfig signingConfigs.release
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // proguard-android-optimize.txt (e NAO proguard-android.txt): ativa as
+            // otimizacoes reais de codigo DEX (inlining, -allowaccessmodification,
+            // etc.) alem da ofuscacao/reducao. E o que o alerta "OTIMIZACAO DEX"
+            // do Play Console exige (ver log.txt 15/10/2026 e proguard-rules.pro).
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }

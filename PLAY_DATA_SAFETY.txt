@@ -1,23 +1,23 @@
-﻿DATA SAFETY — Cadastro Clínico (com.cadclinico.app) — Respostas para Play Console
+DATA SAFETY — Cadastro Clínico (com.cadclinico.app) — Respostas para Play Console
 
 1) O app coleta ou compartilha dados?
-   COLETA: Não. Nenhum dado é coletado do usuário ou do dispositivo. Todo dado é digitado por você e fica no armazenamento local (IndexedDB/localStorage) sem transmissão.
+   COLETA: Não. Nenhum dado é coletado do usuário ou do dispositivo. Todo dado é digitado por você e fica no armazenamento local (IndexedDB/localStorage) sem transmissão para servidor.
    COMPARTILHAMENTO: Não. Nenhum dado é compartilhado, vendido ou enviado a terceiros. Não há servidor, SDK de anúncios ou analytics.
 
 2) Tipos de dados (marcar "Nenhum" em todas as categorias):
    Localização, informações pessoais, fotos/vídeos, arquivos, contatos, e-mails, saúde etc. = Não coletado.
 
 3) Criptografia:
-   Em trânsito: N/A (não há transmissão). Em repouso: SIM — IndexedDB cifrado localmente com AES-GCM e chave gerada no aparelho (PBKDF2 120k iterações).
+   Em trânsito: o único tráfego é o download HTTPS do arquivo indicado pelo usuário em "Importar da URL"; nenhum cadastro é enviado. Em repouso: SIM — IndexedDB cifrado localmente com AES-GCM e chave aleatória gerada no aparelho.
 
 4) Exclusão de dados:
    Usuário apaga no app: Banco de Dados → REINICIAR (escreva "confirmar") ou Android → Configurações → Apps → Cadastro Clínico → Armazenamento → Limpar dados / Desinstalar.
 
 5) SDKs de terceiros:
-   Nenhum. Sem Firebase, sem AdMob, sem analytics. Único link externo opcional é WhatsApp (https://wa.me) aberto por toque do usuário no app externo — sem SDK e sem envio de fichas.
+   Nenhum SDK de coleta. O OCR usa Tesseract.js embutido e roda localmente; o RAR usa WASM embutido. Links externos opcionais: WhatsApp (https://wa.me) e "Importar da URL" (download do arquivo indicado pelo usuário) — sem envio de fichas.
 
 6) Permissões Android:
-   Nenhuma permissão sensível (sem INTERNET, sem câmera/microfone/contatos/GPS). Manifest sem uses-permission.
+   INTERNET declarada somente para o recurso opcional "Importar da URL". Sem câmera/microfone/contatos/GPS no manifesto; a câmera do Buscador óptico é acionada pelo seletor do sistema, com ação do usuário.
 
 7) Público-alvo e classificação:
    Público: Adultos (18+). Não direcionado a crianças. Marcar "App não é voltado para crianças" e responder questionário IARC: sem conteúdo sexual, violento, financeiro, apostas, social ou médico-instrutivo.

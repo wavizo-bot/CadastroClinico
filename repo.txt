@@ -1,0 +1,15 @@
+Package/Identity/Name
+wavizo.CadastroClnico 
+Package/Identity/Publisher
+CN=57BB464E-553F-45B6-A4ED-B253157408EB 
+Package/Properties/PublisherDisplayName
+wavizo 
+Package Family Name (PFN)
+wavizo.CadastroClnico_c5p81jb0en0bm 
+Package SID
+S-1-15-2-2847593193-4293426457-1784438407-1723172423-4006318822-2270365518-2666157207 
+ID da Store
+9P88RMK5TDSB
+
+Repositório Windwos em: https://github.com/wavizo-bot/CadastroClinicoMSIX.git
+Repositório Android em: https://github.com/wavizo-bot/CadastroClinico.git

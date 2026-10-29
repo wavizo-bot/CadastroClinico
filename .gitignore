@@ -9,6 +9,7 @@ build/
 
 # Environment variables
 .env
+.env*
 .env.local
 .env.development.local
 .env.test.local
@@ -99,6 +100,7 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+*.tmp
 
 # Database
 *.db
@@ -111,3 +113,31 @@ temp/
 # Manus version file (auto-generated, not part of source)
 client/public/__manus__/version.json
 .project-config.json
+
+# MSIX / .NET (msix/)
+bin/
+obj/
+*.user
+*.suo
+*.vs/
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+
+# Segredos e credenciais (regras 3.1 / GH2.1)
+log.txt
+*.keystore
+*.jks
+keystore.properties
+client_secret*.json
+google-client.json
+*.pfx
+*.key
+*.p12
+*.WebView2/
+upload_cert.der
+
+# Dados de execução / artefatos locais
+.manus-logs/
+entregas/

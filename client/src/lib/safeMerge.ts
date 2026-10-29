@@ -1,9 +1,9 @@
 import type { Patient, TeamAssignment, TerritoryEntry } from "./dataStore";
 
 export const DEMO_PATIENT_VALUES = {
-  registration: "975749",
-  cpf: "06626492900",
-  phones: ["11978831938", "1145890208"],
+  registration: "000000",
+  cpf: "00000000000",
+  phones: ["00000000000", "0000000000"],
 } as const;
 
 export type ChangeDetail = { field: string; before: string; after: string };

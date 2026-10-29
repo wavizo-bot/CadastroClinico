@@ -207,6 +207,10 @@ const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(
 
 export default defineConfig({
   plugins,
+  // O build Android usa "/" (WebView local). O build do GitHub Pages passa
+  // VITE_BASE=/CadastroClinico/app/ para que assets, favicon e OCR resolvam
+  // dentro do subdiretório publicado.
+  base: process.env.VITE_BASE ?? "/",
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),

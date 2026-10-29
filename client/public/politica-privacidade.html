@@ -26,13 +26,13 @@
     <main>
       <span class="badge">APLICATIVO INDEPENDENTE — NÃO GOVERNAMENTAL</span>
       <h1>Política de Privacidade</h1>
-      <p class="updated">Aplicativo <strong>Cadastro Clínico</strong> (pacote <code>com.cadclinico.app</code>) — Última atualização: 26 de setembro de 2026</p>
+      <p class="updated">Aplicativo <strong>Cadastro Clínico</strong> — Android (<code>com.cadclinico.app</code>) e Windows (<code>wavizo.CadastroClnico</code>) — Última atualização: 29 de outubro de 2026</p>
 
       <div class="highlight">
         <strong>Resumo em uma frase:</strong> o Cadastro Clínico é um <strong>organizador offline de cadastros de clientes</strong> (fichas gerais com nome, contato e endereço).
         Todos os dados que você digita ou reconhece por foto ficam <strong>apenas no armazenamento local do seu aparelho</strong> (IndexedDB / localStorage).
         O app <strong>não tem conta, não tem servidor, não coleta, não envia e não compartilha nada</strong> com terceiros.
-        O único acesso à internet que pode ocorrer é <strong>quando você tocar</strong> em um link de WhatsApp ou se o sistema precisar resolver uma fonte tipográfica do sistema — sempre por sua ação, e nunca com seus cadastros.
+        A conexão com a internet só acontece <strong>quando você toca</strong> em um link de WhatsApp ou usa o recurso opcional <strong>Importar da URL</strong> — sempre por sua ação, e nunca com seus cadastros.
       </div>
 
       <h2>1. Quem somos — aplicativo não governamental</h2>
@@ -56,12 +56,15 @@
       <h2>3. Dados tratados — nenhum dado sai do aparelho</h2>
       <p>O Cadastro Clínico <strong>não coleta dados de quem instala</strong>: não há cadastro de usuário, login, e-mail, telefone de registro, localização ou identificador.
       Os únicos dados existentes são os que <strong>você mesmo digita</strong> nas fichas. Eles são gravados exclusivamente no <strong>armazenamento local do seu aparelho</strong> (IndexedDB cifrado com chave local + localStorage para preferências).
-      Nada é enviado a servidor, porque <strong>não há servidor</strong>. Os dados só deixam o aparelho se <strong>você exportar manualmente</strong> um arquivo JSON (compartilhando você mesmo via Drive, e-mail, etc.) ou se apagar/desinstalar o app.</p>
+      Nada é enviado a servidor, porque <strong>não há servidor</strong>. O recurso opcional <strong>Importar da URL</strong> apenas baixa o arquivo do endereço que você colar; nenhum cadastro é enviado nessa requisição.
+      Os dados só deixam o aparelho se <strong>você exportar manualmente</strong> um arquivo JSON (compartilhando você mesmo via Drive, e-mail, etc.) ou se apagar/desinstalar o app.</p>
 
       <h2>4. Permissões e acesso à internet</h2>
-      <p>Por padrão o app funciona <strong>100% offline</strong> e <strong>não solicita permissão de Internet</strong> no AndroidManifest (sem <code>android.permission.INTERNET</code>).</p>
+      <p><strong>Android:</strong> o app funciona <strong>offline</strong> para todas as funções de cadastro, busca, território e Faxina. A permissão <code>android.permission.INTERNET</code> é declarada <strong>somente</strong> para o recurso opcional <strong>Importar da URL</strong>.</p>
+      <p><strong>Windows (Microsoft Store):</strong> o pacote declara apenas a capacidade <code>internetClient</code>, exigida para que o app abra links externos opcionais (ex.: WhatsApp). O aplicativo não envia dados por essa capacidade — a interface é carregada de arquivos locais embutidos no pacote (WebView2), sem servidor.</p>
       <ul>
         <li><strong>WhatsApp (opcional):</strong> ao tocar no ícone de WhatsApp de uma ficha, o app abre o link <code>https://wa.me/...</code> no aplicativo externo do WhatsApp. Isso abre o navegador/sistema por sua ação; o Cadastro Clínico não envia seus cadastros e não enxerga a conversa.</li>
+        <li><strong>Importar da URL (opcional):</strong> ao colar um link <code>https://</code> e tocar em <strong>Baixar e importar</strong>, o app faz uma requisição GET ao endereço indicado para baixar o arquivo (.rar, .zip ou .csv). O servidor de origem vê a requisição (endereço IP e dados técnicos do cliente, como em qualquer download), mas <strong>não recebe seus cadastros</strong>. Use apenas links de fontes confiáveis.</li>
         <li><strong>Buscador óptico / câmera (opcional):</strong> o <strong>Buscador óptico</strong> permite enviar uma foto ou abrir a câmera de um documento para encontrar um morador. A leitura do texto é feita <strong>no próprio aparelho</strong>, por um modelo de reconhecimento embutido no app; a imagem <strong>não é enviada, não é gravada e não fica armazenada</strong>.
         Essa permissão de câmera só é usada <strong>quando você toca</strong> em "ABRIR CÂMERA" dentro do Buscador óptico.</li>
         <li><strong>Fontes tipográficas:</strong> o app usa fontes do sistema (<code>system-ui</code>, Roboto). Nenhuma fonte é baixada da internet pelo app. Se o sistema operacional resolver uma fonte pela rede, isso é controlado pelo Android, não pelo app, e não inclui seus dados.</li>
@@ -69,7 +72,7 @@
       <p>O app <strong>não acessa</strong>: microfone, contatos, GPS/localização, armazenamento externo compartilhado, histórico de navegação, lista de apps, notificações, biometria ou sensores. A câmera é usada <strong>somente</strong> se você tocar em "ABRIR CÂMERA" no Buscador óptico.</p>
 
       <h2>5. Offline, criptografia e retenção</h2>
-      <p>Toda a interface está embutida no pacote. As fichas ficam no <strong>IndexedDB do WebView</strong>, protegidas pelo sandbox do Android e <strong>cifradas localmente (AES-GCM)</strong> com chave gerada no aparelho.
+      <p>Toda a interface está embutida no pacote. As fichas ficam no <strong>IndexedDB do WebView</strong> (Android e Windows), protegidas pelo sandbox do sistema e <strong>cifradas localmente (AES-GCM)</strong> com chave gerada no próprio aparelho/computador.
       Não há sincronização. Recomendamos manter bloqueio de tela (PIN/biometria) no aparelho. Você pode apagar tudo a qualquer momento no app (Banco de Dados → Reiniciar) ou em Configurações do Android → Apps → Cadastro Clínico → Armazenamento → Limpar dados, ou desinstalando.</p>
 
       <h2>6. Analytics, cookies, publicidade e compras</h2>
@@ -97,10 +100,16 @@
 
       <h2>11. Contato</h2>
       <p>Dúvidas sobre privacidade: <strong>mmr05@hotmail.com</strong><br/>
+      Telefone / WhatsApp: <strong>(11) 97883-1938</strong><br/>
       Desenvolvedor responsável: Cadastro Clínico — projeto independente (não governamental).</p>
 
       <footer>
-        Cadastro Clínico — organizador offline de cadastros. Documento para atendimento à política de privacidade da Google Play.
+        <nav>
+          <a href="termos-de-servico.html">Termos de Serviço</a>
+          <a href="aviso-legal.html">Aviso Legal</a>
+          <a href="./">Página inicial</a>
+        </nav>
+        Cadastro Clínico — organizador offline de cadastros. Documento para atendimento à política de privacidade da Google Play e da Microsoft Store (Microsoft Partner Center).
         Este app não é afiliado a governo, não oferece conselhos de saúde, não possui rede social, finanças, apostas ou foco infantil.
       </footer>
     </main>

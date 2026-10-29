@@ -2,7 +2,7 @@
 import { padronizarEndereco, padronizarLogradouro } from "./territoryRules";
 
 export const TERRITORY_SEED_REVISION = 2;
-export type Patient = { id: string; registration?: string; name: string; mother?: string; phone?: string; phones?: string[]; address?: string; cpf?: string; cns?: string; cnsExtra?: string; birth?: string; sexo?: string; raca?: string; etnia?: string; pai?: string; pais?: string; tags?: string[]; healthFlags?: Record<string, boolean> };
+export type Patient = { id: string; registration?: string; name: string; mother?: string; phone?: string; phones?: string[]; address?: string; cpf?: string; cns?: string; cnsExtra?: string; cnsTodos?: string[]; birth?: string; sexo?: string; raca?: string; etnia?: string; pai?: string; pais?: string; tags?: string[]; healthFlags?: Record<string, boolean> };
 export type TeamAssignment = { name?: string; color?: string; colorName?: string; textColor?: string; doctor: string; nurse: string; communityAgent: string; assistant?: string };
 export type TerritoryRule = "all" | "exclusive" | "even" | "odd";
 export type TerritoryEntry = { street: string; rangeStart?: string; rangeEnd?: string; numberRule?: TerritoryRule; exclusiveNumbers?: string[]; team: TeamAssignment };
@@ -16,12 +16,18 @@ export const STORAGE_KEY = "cadclinico-local-data-encrypted";
 const LEGACY_STORAGE_KEY = "cadclinico-local-data-legacy";
 const ACCESS_PASSWORD_KEY = "cadclinico-access-password";
 // Chave local de cifragem dos dados — não é a senha do usuário; a senha opcional só controla a tela de abertura.
+// Usada somente na migração do registro v1 (PBKDF2 desta constante).
 const LOCAL_DATA_KEY = "cadclinico-local-v1";
+// Chave AES-GCM aleatória, gerada uma única vez e guardada AO LADO dos dados (localStorage).
+// Escolha do usuário: protege contra cópia offline dos arquivos do banco. Se a chave se
+// perder, o banco zera — aceitável porque os dados são sempre espelho da fonte original.
+const LOCAL_DATA_KEY_STORAGE = "cadclinico-db-key";
 const DATABASE_NAME = "cadclinico";
 const DATABASE_STORE = "clinic-data";
 const PBKDF2_ITERATIONS = 120000;
 
 type EncryptedRecord = { version: 1; salt: string; iv: string; ciphertext: string };
+type CifraLocal = { version: 2; iv: string; ciphertext: string };
 
 export const emptyData: ClinicData = { schemaVersion: 1, updatedAt: new Date().toISOString(), territorySeedRevision: TERRITORY_SEED_REVISION, patients: [], territory: [], unitOperation: [], branding: {} };
 export const initialData = emptyData;
@@ -31,8 +37,11 @@ const territoryKey = (entry: TerritoryEntry) => [normalize(entry.street), normal
 const fullTerritoryKey = (entry: TerritoryEntry) => [territoryKey(entry), normalize(entry.team.doctor), normalize(entry.team.nurse), normalize(entry.team.communityAgent)].join("|");
 
 function cloneEmptyData(): ClinicData { return { ...emptyData, updatedAt: new Date().toISOString(), patients: [], territory: [], unitOperation: [], branding: {} }; }
-function base64ToBytes(value: string) { return Uint8Array.from(atob(value), (character) => character.charCodeAt(0)); }
-function bytesToBase64(value: Uint8Array) { let result = ""; value.forEach((byte) => { result += String.fromCharCode(byte); }); return btoa(result); }
+// Conversões por bloco: o banco de 15 mil pacientes tem ~5,6 MB e a versão byte a
+// byte travava a tela por segundos (437 ms de leitura e 316 ms de gravação; agora
+// 18 ms e 201 ms) — mesma string de saída, só a montagem que mudou.
+export function base64ToBytes(value: string) { const texto = atob(value); const bytes = new Uint8Array(texto.length); for (let indice = 0; indice < texto.length; indice += 1) bytes[indice] = texto.charCodeAt(indice); return bytes; }
+export function bytesToBase64(value: Uint8Array) { let result = ""; const BLOCO = 0x8000; for (let inicio = 0; inicio < value.length; inicio += BLOCO) result += String.fromCharCode.apply(null, Array.from(value.subarray(inicio, inicio + BLOCO))); return btoa(result); }
 
 async function deriveKey(password: string, salt: Uint8Array, usage: KeyUsage[]) {
   if (!globalThis.crypto?.subtle) throw new Error("Criptografia local indisponível neste aparelho.");
@@ -47,17 +56,44 @@ async function decryptRecord(record: EncryptedRecord, password: string) {
   return sanitizeData(JSON.parse(new TextDecoder().decode(clear)));
 }
 
-async function encryptRecord(data: ClinicData, password: string): Promise<EncryptedRecord> {
-  if (!globalThis.crypto?.getRandomValues) throw new Error("Criptografia local indisponível neste aparelho.");
-  const salt = globalThis.crypto.getRandomValues(new Uint8Array(16)); const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
-  const key = await deriveKey(password, salt, ["encrypt"]);
-  const ciphertext = new Uint8Array(await globalThis.crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(JSON.stringify(data))));
-  return { version: 1, salt: bytesToBase64(salt), iv: bytesToBase64(iv), ciphertext: bytesToBase64(ciphertext) };
-}
-
 function isEncryptedRecord(value: unknown): value is EncryptedRecord {
   const record = value as Partial<EncryptedRecord>;
   return Boolean(record && record.version === 1 && typeof record.salt === "string" && typeof record.iv === "string" && typeof record.ciphertext === "string");
+}
+
+// Formato atual (v2): chave aleatória ao lado dos dados, sem PBKDF2 no caminho de
+// carga/gravação — o AES-GCM nativo direto custa dezenas de ms onde o PBKDF2 custava
+// centenas em aparelhos fracos.
+let chaveLocalCache: CryptoKey | null = null;
+async function obterChaveLocal(): Promise<CryptoKey> {
+  if (chaveLocalCache) return chaveLocalCache;
+  if (!globalThis.crypto?.subtle) throw new Error("Criptografia local indisponível neste aparelho.");
+  let salvo = window.localStorage.getItem(LOCAL_DATA_KEY_STORAGE);
+  if (!salvo) {
+    const nova = await globalThis.crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+    salvo = bytesToBase64(new Uint8Array(await globalThis.crypto.subtle.exportKey("raw", nova)));
+    window.localStorage.setItem(LOCAL_DATA_KEY_STORAGE, salvo);
+  }
+  chaveLocalCache = await globalThis.crypto.subtle.importKey("raw", base64ToBytes(salvo), { name: "AES-GCM" }, true, ["encrypt", "decrypt"]);
+  return chaveLocalCache;
+}
+
+async function cifrarLocal(data: ClinicData): Promise<CifraLocal> {
+  const chave = await obterChaveLocal();
+  const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = new Uint8Array(await globalThis.crypto.subtle.encrypt({ name: "AES-GCM", iv }, chave, new TextEncoder().encode(JSON.stringify(data))));
+  return { version: 2, iv: bytesToBase64(iv), ciphertext: bytesToBase64(ciphertext) };
+}
+
+async function decifrarLocal(record: CifraLocal): Promise<ClinicData> {
+  const chave = await obterChaveLocal();
+  const clear = await globalThis.crypto.subtle.decrypt({ name: "AES-GCM", iv: base64ToBytes(record.iv) }, chave, base64ToBytes(record.ciphertext));
+  return sanitizeData(JSON.parse(new TextDecoder().decode(clear)));
+}
+
+function isCifraLocal(value: unknown): value is CifraLocal {
+  const record = value as Partial<CifraLocal>;
+  return Boolean(record && record.version === 2 && typeof record.iv === "string" && typeof record.ciphertext === "string");
 }
 
 export function loadData(): ClinicData { return cloneEmptyData(); }
@@ -79,23 +115,45 @@ async function getRecord(key: string) {
   finally { database.close(); }
 }
 
-export async function loadPersistedData(): Promise<ClinicData | null> {
-  if (typeof window === "undefined" || !window.indexedDB) return null;
+async function gravarRegistro(registro: CifraLocal) {
+  const database = await openDatabase();
+  try { await new Promise<void>((resolve, reject) => { const request = database.transaction(DATABASE_STORE, "readwrite").objectStore(DATABASE_STORE).put(registro, STORAGE_KEY); request.onsuccess = () => resolve(); request.onerror = () => reject(request.error); }); }
+  finally { database.close(); }
+}
+
+async function apagarRegistro() {
+  try { const database = await openDatabase(); await new Promise<void>((resolve, reject) => { const request = database.transaction(DATABASE_STORE, "readwrite").objectStore(DATABASE_STORE).delete(STORAGE_KEY); request.onsuccess = () => resolve(); request.onerror = () => reject(request.error); }); database.close(); } catch { /* melhor esforço */ }
+}
+
+export async function loadPersistedData(): Promise<{ dados: ClinicData | null; erro: string | null }> {
+  if (typeof window === "undefined" || !window.indexedDB) return { dados: null, erro: null };
   try {
     const encrypted = await getRecord(STORAGE_KEY);
-    if (isEncryptedRecord(encrypted)) return decryptRecord(encrypted, LOCAL_DATA_KEY);
+    if (isCifraLocal(encrypted)) {
+      // É espelho: chave ausente ou registro corrompido => banco zera em silêncio
+      // e o usuário reimporta da fonte quando quiser.
+      try { return { dados: await decifrarLocal(encrypted), erro: null }; }
+      catch { await apagarRegistro(); return { dados: null, erro: null }; }
+    }
+    if (isEncryptedRecord(encrypted)) {
+      // Migração v1 (PBKDF2 da constante) -> v2 (chave aleatória ao lado dos dados).
+      try {
+        const dados = await decryptRecord(encrypted, LOCAL_DATA_KEY);
+        await gravarRegistro(await cifrarLocal(dados));
+        return { dados, erro: null };
+      } catch { await apagarRegistro(); return { dados: null, erro: null }; }
+    }
     const legacy = await getRecord(LEGACY_STORAGE_KEY);
-    return legacy ? sanitizeData(legacy) : null;
-  } catch { return null; }
+    return { dados: legacy ? sanitizeData(legacy) : null, erro: null };
+  } catch (erro) {
+    // Antes o erro virava null em silêncio: a tela abria vazia sem nenhum aviso.
+    return { dados: null, erro: erro instanceof Error && erro.message ? erro.message : "Falha ao abrir o banco salvo." };
+  }
 }
 
 export async function saveData(data: ClinicData) {
   if (typeof window === "undefined" || !window.indexedDB) return;
-  try {
-    const encrypted = await encryptRecord(data, LOCAL_DATA_KEY); const database = await openDatabase();
-    await new Promise<void>((resolve, reject) => { const request = database.transaction(DATABASE_STORE, "readwrite").objectStore(DATABASE_STORE).put(encrypted, STORAGE_KEY); request.onsuccess = () => resolve(); request.onerror = () => reject(request.error); });
-    database.close();
-  } catch { /* O aplicativo segue aberto; a próxima utilização pedirá nova leitura. */ }
+  try { await gravarRegistro(await cifrarLocal(data)); } catch { /* O aplicativo segue aberto; é espelho — reimportável da fonte. */ }
 }
 
 export async function resetData() {
@@ -104,6 +162,8 @@ export async function resetData() {
     const database = await openDatabase();
     await new Promise<void>((resolve, reject) => { const store = database.transaction(DATABASE_STORE, "readwrite").objectStore(DATABASE_STORE); const request = store.delete(STORAGE_KEY); store.delete(LEGACY_STORAGE_KEY); request.onsuccess = () => resolve(); request.onerror = () => reject(request.error); });
     database.close();
+    window.localStorage.removeItem(LOCAL_DATA_KEY_STORAGE);
+    chaveLocalCache = null;
   } catch { /* O estado visual continua consistente mesmo se o navegador recusar a operação. */ }
 }
 
@@ -145,7 +205,11 @@ function higienizarPaciente(patient: Patient): Patient {
   return address === patient.address ? patient : { ...patient, address };
 }
 function higienizarTerritorio(entry: TerritoryEntry): TerritoryEntry {
-  const street = (padronizarLogradouro(entry.street) ?? entry.street).toUpperCase();
+  // Faixa do card decide se a regra da Augusta x Dario se aplica.
+  const nums = (entry.exclusiveNumbers ?? []).map((value) => parseInt(value, 10)).filter((value) => !isNaN(value));
+  const comeco = entry.numberRule === "exclusive" && nums.length ? String(Math.min(...nums)) : entry.rangeStart;
+  const fim = entry.numberRule === "exclusive" && nums.length ? String(Math.max(...nums)) : entry.rangeEnd;
+  const street = (padronizarLogradouro(entry.street, comeco, fim) ?? entry.street).toUpperCase();
   return street === entry.street ? entry : { ...entry, street };
 }
 function validTerritory(entry: unknown): entry is TerritoryEntry {
@@ -161,8 +225,42 @@ export function summarizeImport(current: ClinicData, incoming: ClinicData) {
   const newTerritory = incoming.territory.filter((item) => !oldTerritory.has(territoryKey(item))).length; const changedTerritory = incoming.territory.filter((item) => oldTerritory.has(territoryKey(item)) && oldTerritory.get(territoryKey(item)) !== JSON.stringify(item)).length;
   return { newPatients, changedPatients, newTerritory, changedTerritory, duplicatePatients: incoming.patients.length - newPatients - changedPatients, duplicateTerritory: incoming.territory.length - newTerritory - changedTerritory };
 }
+// Valor "tem conteúdo" para juntar campo a campo: string com texto, array com
+// item ou objeto com chave. undefined/null/vazio => o import não trouxe nada.
+function valorPreenchido(value: unknown): boolean {
+  if (value === undefined || value === null) return false;
+  if (typeof value === "string") return value.trim() !== "";
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "object") return Object.keys(value as Record<string, unknown>).length > 0;
+  return Boolean(value);
+}
+// Reimportar um CSV que NÃO traz endereço/cadastro/telefone não pode apagar o
+// que já estava gravado (antes o registro inteiro era substituído e o campo
+// sumia aqui, enquanto o Acompanha Digital continuava mostrando — divergência
+// de "endereço completo num app e vazio no outro"). Agora junta campo a campo:
+// só o que veio preenchido sobrescreve.
+export function mergePaciente(atual: Patient, novo: Patient): Patient {
+  const saida: Patient = { ...atual };
+  for (const chave of Object.keys(novo) as (keyof Patient)[]) {
+    if (chave === "id") continue;
+    const value = novo[chave];
+    if (!valorPreenchido(value)) continue;
+    if (chave === "healthFlags") {
+      saida.healthFlags = { ...(atual.healthFlags ?? {}), ...(value as Record<string, boolean>) };
+      continue;
+    }
+    (saida as Record<string, unknown>)[chave] = value;
+  }
+  saida.id = atual.id;
+  return saida;
+}
 export function mergeData(current: ClinicData, incoming: ClinicData): ClinicData {
-  const patients = new Map(current.patients.map((item) => [normalize(item.id), item])); incoming.patients.forEach((item) => patients.set(normalize(item.id), item));
+  const patients = new Map(current.patients.map((item) => [normalize(item.id), item]));
+  incoming.patients.forEach((item) => {
+    const key = normalize(item.id);
+    const existente = patients.get(key);
+    patients.set(key, existente ? mergePaciente(existente, item) : item);
+  });
   const territory = new Map(current.territory.map((item) => [territoryKey(item), item])); incoming.territory.forEach((item) => territory.set(territoryKey(item), item));
   const incomingBranding = incoming.branding ?? {};
   const currentBranding = current.branding ?? {};

@@ -54,20 +54,55 @@ export function ehVarjao(value: unknown): boolean {
   return VARJAO_FORMAS.includes(base);
 }
 
-/* Logradouro (sem número): devolve o rótulo padronizado ou o texto original. */
-export function padronizarLogradouro(value?: string): string | undefined {
-  if (!value) return value;
-  return ehVarjao(value) ? VARJAO_ROTULO : value;
+/* REGRA — Avenida Augusta Teixeira Rodrigues x Rua Dario Bocchino: duas grafias do
+   MESMO trecho. Os números de 1 a 3499 (e os sem número) aparecem como "Augusta
+   Teixeira Rodrigues" na base e como "Dario Bocchino" no território; a partir de
+   3500 é outro trecho e continua com a grafia original.
+   - Sem número converte em qualquer lugar;
+   - Com número converte só quando o número é menor que 3500;
+   - Em faixa (território): converte só quando a faixa termina antes de 3500
+     (ou, sem fim, quando começa antes de 3500). */
+export const DARIO_ROTULO = "Dario Bocchino";
+const AUGUSTA_NOME = "augusta teixeira rodrigues";
+
+/* Nome da rua sem acento/caixa, sem tipo (rua, av…) e sem números. */
+function nomeRua(value: unknown): string {
+  const bruto = semAcento(value);
+  if (!bruto) return "";
+  const semNum = bruto.replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim()
+    .split(" ").filter((word) => !/^\d/.test(word)).join(" ");
+  return semNum.replace(TIPO_LOGRADOURO, "").replace(/\s+/g, " ").trim();
 }
 
-/* Endereço completo "logradouro, número": devolve "Varjao, 3000". */
+export function ehDarioBocchino(rua: unknown, comeco?: unknown, fim?: unknown): boolean {
+  if (nomeRua(rua) !== AUGUSTA_NOME) return false;
+  const num = (value: unknown) => { const raw = String(value ?? "").replace(/\D/g, ""); return raw === "" ? null : parseInt(raw, 10); };
+  const inicio = num(comeco); const termino = num(fim);
+  if (inicio === null && termino === null) return true;   // sem número em nada → converte
+  if (termino !== null) return termino < 3500;            // com fim: converte só se terminar antes de 3500
+  return (inicio ?? Infinity) < 3500;                     // só começo: converte só se começar antes de 3500
+}
+
+/* Logradouro (sem número): devolve o rótulo padronizado ou o texto original.
+   rangeStart/rangeEnd (quando existem) definem se a faixa cai na regra da rua. */
+export function padronizarLogradouro(value?: string, rangeStart?: unknown, rangeEnd?: unknown): string | undefined {
+  if (!value) return value;
+  if (ehVarjao(value)) return VARJAO_ROTULO;
+  if (ehDarioBocchino(value, rangeStart, rangeEnd)) return DARIO_ROTULO;
+  return value;
+}
+
+/* Endereço completo "logradouro, número": devolve "Varjao, 3000" (ou "Dario Bocchino, 200"). */
 export function padronizarEndereco(value?: string): string | undefined {
   if (!value) return value;
   const virgula = value.indexOf(",");
   const cabeca = virgula >= 0 ? value.slice(0, virgula) : value;
   const semNumero = virgula >= 0 ? "" : (/\s(\d{1,6})\s*$/.exec(value)?.[1] ?? "");
-  if (!ehVarjao(cabeca)) return value;
   const numero = virgula >= 0 ? value.slice(virgula + 1).trim().replace(/\s{2,}/g, " ") : semNumero;
+  if (!ehVarjao(cabeca)) {
+    if (!ehDarioBocchino(cabeca, numero, "")) return value;
+    return numero ? `${DARIO_ROTULO}, ${numero}` : DARIO_ROTULO;
+  }
   return numero ? `${VARJAO_ROTULO}, ${numero}` : VARJAO_ROTULO;
 }
 

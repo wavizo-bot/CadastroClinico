@@ -1,0 +1,379 @@
+================================================================================
+MANUAL DO PROJETO — "CADASTRO CLÍNICO"
+Pasta: C:\APPS\Cadastro Clinico
+Gerado: 06/10/2026 | Versão do app: 1.0.10 (Android versionCode 9 | MSIX publicado 1.0.10.0)
+================================================================================
+
+TL;DR
+-----
+App móvel + web brasileiro, 100% OFFLINE, para profissionais de saúde guardarem e
+consultarem fichas de pacientes, território (ruas x equipes) e funcionamento da
+unidade. React 19 + Vite + Capacitor (Android) + wrapper C#/WebView2 (Windows/MSIX).
+Os dados ficam criptografados (AES-GCM) no IndexedDB local. Não tem servidor, não
+tem conta, não envia nada para lugar nenhum. É um app PRIVADO/INDEPENDENTE (não é
+governamental, não é da prefeitura/PMJ), apesar da origem no contexto "Clínica da
+Família II".
+
+--------------------------------------------------------------------------------
+0. NOMES E IDENTIDADE (leia primeiro — evita confusão)
+--------------------------------------------------------------------------------
+- Nome do app: "Cadastro Clínico" (Android: com.cadclinico.app).
+- O usuário às vezes chama este projeto de "Acompanha Digital". ATENÇÃO: nos logs
+  (log.txt) "Acompanha Digital" é um APP IRMÃO SEPARADO (arquivo Acompanha-Digital.html,
+  em outra pasta). Os dois leem a mesma base de dados e compartilham regras/códigos
+  (núcleo OCR, regras de busca, formato de importação do BI). Divergências entre os
+  dois já foram bug e já foram corrigidas (ver §12).
+- Origem: projeto nasceu como ferramenta para a "Clínica da Família II" (ver
+  ideas.md — direção visual "Saúde Pública Editorial"). Para a loja, foi reposicionado
+  como organizador de fichas privado e independente (PLAY_STORE_LISTING.txt).
+- Autor/owner: "Maico" / "wavizo" (contato 11 978831938, mmr05@hotmail.com).
+  Repos GitHub: wavizo-bot.
+
+--------------------------------------------------------------------------------
+1. STACK E ARQUITETURA
+--------------------------------------------------------------------------------
+- Frontend: React 19 + TypeScript + Vite 7 + Tailwind CSS 4 + Radix/shadcn (components/ui)
+  + wouter (rotas) + react-hook-form + zod + fuse.js (busca difusa) + recharts + xlsx + sonner.
+- Mobile: Capacitor 8 (@capacitor/android). webDir = dist/public.
+- Desktop/Windows: wrapper C# WinForms .NET 8 + WebView2 empacotado como MSIX (pasta msix/).
+- Backend: server/index.ts — Express que só serve estáticos e fallback para index.html
+  (SPA). Nenhuma API de dados; tudo roda no cliente.
+- Package manager: pnpm 10. Monorepo simples (client/, server/, shared/, tools/, android/, msix/).
+- Aliases do Vite: @ = client/src, @shared = shared, @assets = attached_assets.
+- Patch aplicado: wouter@3.7.1 (patches/). Override: tailwindcss>nanoid 3.3.7.
+- Testes: Vitest (53 testes / 5 arquivos, todos verdes em 02/10/2026).
+- Debug dev: vite-plugin-manus-runtime + coletor que grava logs em .manus-logs/
+  (browserConsole.log, networkRequests.log, sessionReplay.log). Só em dev.
+
+--------------------------------------------------------------------------------
+2. ESTRUTURA DE PASTAS (mapa)
+--------------------------------------------------------------------------------
+client/               App web (fonte)
+  src/pages/Home.tsx  TELA PRINCIPAL — todas as views do app de campo (729 linhas)
+  src/pages/Admin.tsx Painel administrativo (/administrativo) — importação/edição/exportação
+  src/App.tsx         Rotas: /administrativo -> Admin; qualquer outra -> Home
+  src/lib/
+    dataStore.ts      Modelo de dados + IndexedDB cifrado (AES-GCM/PBKDF2) + merge
+    biImport.ts       Importação dos CSVs/TSV do BI (4 relatórios + equipes), union-find
+    territoryRules.ts Regras territoriais (intervalos, pares/ímpares, ! @ #, Varjão, Dario)
+    patientSearch.ts  Busca difusa com Fuse (índice lazy)
+    faxina.ts         Motor de auditoria de qualidade dos dados ("Faxina")
+    ocr.ts            Buscador Óptico (Tesseract worker, extração por rótulos)
+    safeMerge.ts      Mesclagem não destrutiva + confirmação "CONFIRMO" + valores demonstrativos
+    adminStorage.ts   Persistência do rascunho administrativo (localStorage)
+    branding.ts       Imagens institucionais embutidas (até 300 KB cada)
+    accessSecurity.ts Senha de acesso opcional (4 chars A-Z1-9)
+  src/lib/*.test.ts   Testes Vitest
+  public/             politica-privacidade.html, service-worker.js (auto-remoção),
+                      favicon.ico, ocr/tesseract.min.js, __manus__/ (dev)
+server/index.ts       Express estático (produção: serve dist/public)
+shared/const.ts       (APAGADO em 20/10/2026 — scaffold morto de cookie/TTL da
+                       antiga autenticação externa; nunca foi importado; junto
+                       com o client/src/const.ts, igualmente morto)
+android/              Projeto Capacitor Android + keystore de upload
+msix/                 Projeto MSIX (C# WinForms + WebView2) — ver §9
+tools/                Scripts de validação (tsx): validate-territory-rules,
+                      validate-territory-update, validate-safe-merge, validate-branding,
+                      parse-territory-update.mjs
+dist/                 Build de produção (vite -> dist/public + server empacotado)
+docs na raiz: ideas.md (design), todo.md (backlog), log.txt (HISTÓRICO DETALHADO —
+  a fonte mais rica do projeto), avaliacao-atualizacao-segura.md (avaliação de 22/08/2026),
+  PLAY_STORE_LISTING.txt, PLAY_DATA_SAFETY.txt, repo.txt (identidades de pacote),
+  repo.txt, template.json (template base do gerador), clinic-logo.zip,
+  .prettierrc/.prettierignore, tsconfig*.json, vite.config.ts, capacitor.config.ts.
+
+--------------------------------------------------------------------------------
+3. MODELO DE DADOS (client/src/lib/dataStore.ts)
+--------------------------------------------------------------------------------
+ClinicData = {
+  schemaVersion: 1,
+  updatedAt: string (ISO),
+  databaseDate?: string ("aaaa-mm-dd" local do arquivo de importação MAIS ANTIGO;
+                         nunca anda para frente — mantém a menor data),
+  territorySeedRevision: 2,
+  patients: Patient[],
+  territory: TerritoryEntry[],
+  unitOperation: UnitOperationEntry[],
+  branding?: InstitutionalBranding
+}
+
+Patient = { id, registration?, name, mother?, phone?, phones? (8-11 dígitos, até 4),
+  address?, cpf?, cns?, cnsExtra?, cnsTodos?[], birth?, sexo?, raca?, etnia?,
+  pai?, tags?, healthFlags? }
+  - id prioritário: CNS > cadastro > nome|nascimento.
+
+TerritoryEntry = { street, rangeStart?, rangeEnd?, numberRule: "all"|"exclusive"|"even"|"odd",
+  exclusiveNumbers?[], team: { name?, color? (HEX), colorName?, textColor?, doctor,
+  nurse, communityAgent, assistant? } }
+  - numberRule vem dos marcadores da planilha: "!" = lista exclusiva, "@" = pares,
+    "#" = ímpares, nada = todos (parseTerritoryRule em territoryRules.ts).
+
+UnitOperationEntry = { title, text }  (setores do "Funcionamento da unidade")
+
+InstitutionalBranding = { displayMode: "pair"|"single", clinicLogo?, cityLogo?,
+  centralImage? } — imagens embutidas base64 (png/jpeg/webp, máx 300 KB cada).
+
+PERSISTÊNCIA (dataStore.ts):
+- IndexedDB: banco "cadclinico", objectStore "clinic-data".
+- Registro cifrado { version:1, salt, iv, ciphertext } na chave
+  "cadclinico-local-data-encrypted" (legado: "cadclinico-local-data-legacy").
+- Criptografia: AES-GCM-256; chave derivada por PBKDF2 (120.000 iterações, SHA-256)
+  a partir da chave LOCAL "cadclinico-local-v1". OBS: essa chave NÃO é a senha do
+  usuário — é uma chave fixa do aparelho. A senha de 4 caracteres só controla a
+  tela de abertura (barreira de discrição, NÃO criptografia — ver avaliacao-*.md).
+- localStorage: senha de acesso em "cadclinico-access-password"; rascunho admin em
+  adminStorage.ts.
+- base64<->bytes em blocos de 32 KB (leitura 437ms->18ms, escrita 316->201ms).
+- loadPersistedData() devolve { dados, erro } (falhas NÃO são silenciosas).
+
+--------------------------------------------------------------------------------
+4. REGRAS DE NEGÓCIO CRÍTICAS (o coração do app)
+--------------------------------------------------------------------------------
+BUSCA DE PACIENTES (Home.tsx + patientSearch.ts):
+- Debounce de 2 s antes de pesquisar.
+- Prontidão: texto comum >= 4 caracteres; "mãe " (prefixo explícito) busca nome da
+  mãe e exige >= 4 chars no termo; consulta numérica < 4 dígitos busca SÓ cadastro;
+  >= 4 dígitos busca cadastro, CPF, CNS e telefone; "texto número" = endereço com
+  número exato; prefixo de logradouro (rua/av/estrada/travessa) é ignorado na busca.
+- Ordem: 1º exato; só se não achar, cai no difuso (Fuse: keys name x3, mother x2,
+  address x1; threshold 0.4; minMatchCharLength 3; ignoreLocation; limite 40,
+  dedup por id). Índice criado em lazy e resetado quando a lista muda.
+- Resultados ordenados alfabeticamente; paginação de 5 pacientes / 10 trechos.
+- Acentos são normalizados (NFD + strip) em tudo, inclusive no OCR.
+
+TERRITÓRIO (territoryRules.ts):
+- Correspondência por rua (normalizada) + regra de número (intervalo, par/ímpar,
+  exclusiva) + especificidade (exclusive=4 > range+par/ímpar=3 > range=2 >
+  par/ímpar=1 > todos=0).
+- REGRA EXCLUSIVA VARJÃO: "Estrada Municipal do Varjão", "Municipal do Varjão",
+  "do Varjão", "Varjão" (c/ ou s/ acento) são o MESMO endereço; exibição
+  padronizada = "Varjao".
+- REGRA AUGUSTA x DARIO BOCCHINO: números < 3500 (ou sem número) de
+  "Augusta Teixeira Rodrigues" convertem para "Dario Bocchino"; >= 3500 mantém.
+  Aplica-se em faixas territoriais, endereços de pacientes e importação.
+
+IMPORTAÇÃO DO BI (biImport.ts) — formato ACS Digital:
+- 5 tipos de CSV/TSV detectados pelo cabeçalho: s1 "CADASTRO — ANÁLISE DETALHADA",
+  s2 "QUESTIONÁRIO AUTO REFERIDO", s3 "SAÚDE — CADASTROS DETALHADOS",
+  s4 "CADASTRO — ACOMPANHAMENTO INDIVIDUAL" (raça/cor, situação de rua, doenças
+  respiratória/cardíaca, orientação sexual, responsável familiar, etilismo, drogas,
+  gestante), equipes (Flor/Cor/Hex/Médica/Enfermeira/ACS + rua + faixa).
+- Aceita .csv/.tsv, BOM, windows-1252 (latin1), delimitador detectado.
+- UNION-FIND: une registros por CNS + CPF + nome|nascimento; primeiro valor
+  não-vazio vence; telefones preenchem slots vazios (até 4); endereços divergentes
+  são normalizados e desempatados alfabeticamente (pt-BR).
+- CNS: listaCNS() guarda todos os CNS de 10+ dígitos; cnsPrincipal() = "regra do 7"
+  (se algum CNS começa com 7, escolhe o MAIOR dos que começam com 7; senão o maior
+  de todos). cnsExtra = segundo CNS.
+- Telefone: aceita 8 a 11 dígitos (corrigido em 29/09 — antes só 10/11, o que
+  causava divergência com o Acompanha Digital).
+- Resultado real: 59.422 registros -> 15.741 pacientes em ~423 ms.
+- Cadastro Clínico NÃO corta por área geográfica (aceita qualquer endereço); o
+  Acompanha Digital SIM (aplicarArea). Por isso a quantidade de pessoas pode diferir
+  entre os dois apps — decisão do usuário, não é bug.
+
+MESCLAGEM SEGURA (safeMerge.ts + Admin):
+- Princípio: campo vazio na planilha NÃO apaga campo preenchido na base.
+- Identificação: CNS > cadastro (real) > CPF (real) > nome+nascimento.
+- Valores demonstrativos (troca por real é automática, sem confirmação):
+  cadastro 975749, CPF 06626492900, telefones 11978831938 e 1145890208.
+- Troca de valor REAL por outro valor real diferente (endereço, nascimento, mãe,
+  CNS, equipe...) fica pendente e só aplica após digitar exatamente "CONFIRMO".
+- Nome repetido sem identificador confiável: linha NÃO é aplicada.
+- Novo trecho territorial só entra com rua + 3 profissionais obrigatórios.
+- "Funcionamento da unidade" atualiza direto (sem confirmação).
+
+FAXINA (faxina.ts) — auditoria de qualidade, SOMENTE LEITURA nesta versão:
+- 10 grupos: 1 CPF, 2 CNS, 3 Cadastro, 4 Cruzamentos, 5 Identificador+demografia,
+  6 Similaridade, 7 Fonética, 8 Inversão/fragmentação, 9 Estatísticas (completude),
+  + pipeline de decisão (reclassifica para duplicata quando nome+mae+nasc+endereco
+  idênticos).
+- Severidades: fraude > duplicata > erro > incompleto > coincidência.
+- Motor é um GERADOR com 23 pontos de progresso (executarFaxinaComProgresso) que
+  cede ao React a cada etapa (tela repinta 23x; maior bloqueio 166 ms).
+  executarFaxina() síncrona devolve o mesmo resultado.
+- Complexidade O(n) por chave/hash; limites: LIMITE_BLOCO 40, LIMITE_BLOCO_ID 30,
+  LIMITE_BLOCO_NOME_DATA 100, LIMITE_IDS 200, teto LIMITE_ACHADOS 20.000.
+- Base real (15.741): 1.796 achados em ~750 ms; 271 duplicatas, 5 erros, 4
+  incompletos, 1.516 coincidências, 0 fraudes (import já mergeia CPF/CNS iguais).
+
+BUSCADOR ÓPTICO (ocr.ts):
+- Tesseract (ocr/tesseract.min.js, worker compartilhado), extração orientada a
+  rótulos de guias/comprovantes; núcleo compartilhado com o Acompanha Digital
+  (validado em 48 fotos reais — bancada em ocr_bench/, NÃO editar sem rodar comparar.js).
+- Pré-carrega worker ao tocar no botão/abrir tela (evita "initializing api 100%...").
+- Ordenação do resultado: 1º cadastro 100% exato (zeros à esquerda ignorados),
+  2º similaridade de nome (palavras comuns ponderadas + bigramas/Dice), 3º via
+  (Cadastro > CNS > CPF > Telefone > Nome), 4º alfabética.
+- Frases rotativas de 1,2 s (FRASES_LEITURA, humorísticas) + barra que NUNCA enche:
+  alvo = max(10s, 120% do maior tempo já registrado, persistido em "ocrMaxSeg");
+  passa do alvo -> trava em 98% + frase de atraso. Progresso real do Tesseract
+  vai só pro console.
+
+SENHA DE ACESSO (accessSecurity.ts + Home.tsx):
+- Opcional, 4 caracteres, alfabeto "ABCDEFGHJKLMNPQRSTUVWXYZ123456789" (sem I, O, 0).
+- Tela de 4 etapas x 3 caracteres: 12 caracteres distintos; erro NÃO dá feedback
+  (só gera novas opções aleatórias); bloqueio por tentativa persistido.
+- Sem senha escolhida, o app abre direto (exigência Play Store).
+- AVISO: é barreira de discrição, não segurança forte (ver avaliacao-atualizacao-segura.md).
+
+OUTROS:
+- Cabeçalho (v1.0.4+): linha 1 "Cadastro Clinico", linha 2 "Versão X com dados de
+  dd/mm/aaaa" (ou "sem dados importados"). Versão vem de package.json (APP_VERSION).
+- Voltar físico do Android: @capacitor/app integrado ao histórico do wouter.
+- service-worker.js próprio: serve como script válido e se AUTO-DESREGISTRA + remove
+  caches antigos + recarrega abas uma vez (limpa worker de outra app — "Kuaa" — que
+  rodava em localhost:3001 e causava "Response body is already used").
+
+--------------------------------------------------------------------------------
+5. TELAS E FLUXOS
+--------------------------------------------------------------------------------
+App de campo (Home.tsx) — views: home | patients | patient-detail | territory |
+address-detail | operations | database | optical | faxina.
+- Home: busca universal + botões BUSCADOR ÓPTICO, BANCO DE DADOS, FAXINA (abaixo de
+  Banco de Dados), Nosso território, Funcionamento da unidade.
+- Ficha do paciente: nome, mãe, nascimento DD/MM/AAAA + idade calculada (singular
+  correta), endereço, cadastro, CNS/CPF, telefones (atalho opcional WhatsApp),
+  equipe com cor/inicial, cópia da ficha.
+- Banco de Dados: importação (arquivos BI ou texto colado), detecção de alterações,
+  reinicialização (digitar "confirmar"), geração de senha, exportação JSON único,
+  imagens institucionais.
+- Faxina: protegida por senha; roda ao abrir; barra de progresso com etapa atual;
+  chips clicáveis abrem o cadastro (sem correção automática).
+
+Administrativo (/administrativo, Admin.tsx) — tabs: patients | territory | operations
+  | branding | export.
+- Importação por planilha (.xlsx via lib xlsx), CSV/TSV ou texto colado; mapa de
+  colunas A–T (A–J pacientes, K–R território, S–T setores); conferência completa de
+  registros; validação de duplicidades e telefones BR; mesclagem segura com CONFIRMO;
+  seleção/prévia/restauração/exportação de imagens institucionais; opção de imagem
+  única centralizada ou lado a lado; prompt copiável para converter planilha em JSON.
+
+--------------------------------------------------------------------------------
+6. COMANDOS
+--------------------------------------------------------------------------------
+pnpm dev            Vite dev server (porta 3000, host liberado, próxima porta se ocupada)
+pnpm check          tsc --noEmit (sempre rodar antes de entregar)
+pnpm build          vite build + esbuild do server -> dist/
+pnpm start          node dist/index.js (produção, porta 3000)
+pnpm exec vitest    rodar testes (sem script "test" no package.json)
+pnpm exec cap sync android   copia web assets para android/app/src/main/assets/public
+pnpm format         prettier --write .
+
+Android (em android/):
+  gradlew assembleDebug     APK de depuração
+  gradlew bundleRelease     AAB assinado (keystore cadclinico-upload.keystore)
+  (no Windows, dispare com Start-Process — o gradle morre junto com o shell)
+
+MSIX:  .\msix\build.ps1   (pipeline de 5 etapas: pnpm build -> dotnet publish ->
+        layout -> makeappx pack -> validação; saída msix/dist/*.msix)
+
+BUMP DE VERSÃO (SEMPRE os dois): package.json "version" + android/app/build.gradle
+versionName/versionCode. A Play Store exige versionCode maior a cada envio.
+
+--------------------------------------------------------------------------------
+7. DISTRIBUIÇÃO
+--------------------------------------------------------------------------------
+GOOGLE PLAY (Android):
+- App: com.cadclinico.app, label "Cadastro Clinico", minSdk 24, target 36.
+- Categoria Produtividade/Ferramentas; 18+; sem anúncios/compras; sem permissões
+  (NEM INTERNET — app offline; único link externo opcional = WhatsApp wa.me).
+- Data Safety: "não coleta/compartilha nada"; criptografia em repouso (AES-GCM);
+  respostas prontas em PLAY_DATA_SAFETY.txt.
+- Política de privacidade (obrigatória, URL HTTPS pública):
+  https://wavizo-bot.github.io/CadastroClinicoMSIX/politica-privacidade.html
+  (arquivo fonte: client/public/politica-privacidade.html — atualizar nas 3 cópias:
+  client/public, dist/public e android assets ao editar).
+- Textos de listing prontos em PLAY_STORE_LISTING.txt.
+- Chaves Play (registro fornecido pelo usuário em 15/10/2026):
+  Chave de assinatura do app (app signing — fica com o Google):
+    SHA-1  FB:5B:37:4A:E9:5C:DD:14:39:49:6E:4B:96:A3:D8:44:CE:23:F3:65
+    SHA-256 27:4C:1C:A2:49:11:04:6D:2D:48:23:D5:4E:20:C4:F2:6C:83:2B:EC:69:
+            DE:AB:BE:44:57:C5:50:BA:0E:B4:B6
+  Certificado da chave de upload: C:\APPS\Cadastro Clinico\upload_cert.der
+    MD5    3F:DF:4B:31:B6:DD:48:74:DA:C5:A0:EE:34:89:4B:D9
+    SHA-1  BE:FA:A2:26:67:A5:B6:81:7E:C6:61:AB:8A:86:68:B9:C1:2C:62:E4
+    SHA-256 3F:BB:AD:00:28:F6:3A:FA:0E:C8:A1:76:E3:66:93:21:6E:A2:75:FD:50:
+            26:35:BF:8F:F5:20:4B:C0:A5:C1:B9
+  Última versão publicada na Play: 1.0.10 (versionCode 9).
+
+MICROSOFT STORE (Windows):
+- Identidade: Name wavizo.CadastroClnico | Publisher CN=57BB464E-553F-45B6-A4ED-B253157408EB
+  | PublisherDisplayName wavizo | PFN wavizo.CadastroClnico_c5p81jb0en0bm |
+  Store ID 9P88RMK5TDSB | último publicado: 1.0.10.0; manifesto/build local
+  (msix/CadastroClinicoMSIX/Package.appxmanifest): 1.0.13.0 — ainda NÃO
+  publicado (confirmar no Partner Center antes de assumir como vigente).
+- Pacotes (padrão desde 20/10/2026): entregas/windows/wavizo.CadastroClnico_1.0.13.0_x64.msix
+  é o mais recente (movido de msix/dist; 1.0.8/1.0.9/1.0.10 em
+  entregas/windows/historico/; UNSIGNED — a Store re-assina; aceito) e
+  entregas/play/app-release-vC17-1.0.13.aab é o AAB pronto para envio.
+- Guia de submissão completo com respostas prontas: msix/PARTNER_CENTER.md.
+- Pendência: screenshots desktop 1366x768+.
+
+REPOSITÓRIOS:
+- Android/Web: https://github.com/wavizo-bot/CadastroClinico.git (origin deste repo)
+- Windows (espelho de msix/): https://github.com/wavizo-bot/CadastroClinicoMSIX.git
+
+--------------------------------------------------------------------------------
+8. ARMADILHAS CONHECIDAS (já deram bug — ver log.txt)
+--------------------------------------------------------------------------------
+- PowerShell 5.1 lê UTF-8 sem BOM como ANSI: package.json já ganhou BOM (quebrou
+  Node) e o Package.appxmanifest já saiu com mojibake ("Clínico" -> "ClÃ­nico"),
+  derrubando upload do Partner Center. Sempre gravar UTF-8 SEM BOM ([IO.File]::
+  WriteAllText com UTF8Encoding($false)) e conferir bytes.
+- Ao MOVER a pasta do projeto, node_modules quebra (junctions apontam pro caminho
+  antigo) -> rodar pnpm install.
+- Qualquer edição de texto em arquivo PT-BR: checar U+FFFD (mojibake) antes de buildar.
+- Dev: se um service worker de outra app rodar em localhost:3001, ele intercepta
+  tudo (já corrigido com o worker auto-remoção).
+- Vite avisa que ocr/tesseract.min.js não é module — aviso pré-existente, ignorar.
+- Bases antigas sem databaseDate usam updatedAt como fallback; mergeData mantém a
+  MENOR data (a data do banco nunca anda para frente).
+
+--------------------------------------------------------------------------------
+9. DOCUMENTOS DO REPO (onde ler o quê)
+--------------------------------------------------------------------------------
+log.txt                    HISTÓRICO COMPLETO de entregas (26/09 a 05/10/2026): o que
+                           mudou, por quê, presunções, erros e correções, verificações.
+                           PRIMEIRO LUGAR PARA BUSCAR CONTEXTO.
+todo.md                    Backlog (108 itens, quase todos [x]). CUIDADO: contém itens
+                           com versão "1.20.x" (senha trimestral, bloqueio por 2 dias,
+                           limpeza após 10 dias etc.) que NÃO batem com o package.json
+                           atual (1.0.7) — provavelmente pertencem ao app irmão
+                           Acompanha Digital. Confirmar antes de usar como escopo atual.
+ideas.md                   Direção visual "Saúde Pública Editorial": Azul Clínica
+                           #123B67, fontes Outfit (títulos) + Source Sans 3 (textos),
+                           princípios de design, microcopy.
+avaliacao-atualizacao-segura.md  Avaliação de 22/08/2026: regras de importação não
+                           destrutiva, limite da senha de 4 chars, recomendações.
+PLAY_STORE_LISTING.txt / PLAY_DATA_SAFETY.txt  Textos prontos para as lojas.
+repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submissão.
+
+--------------------------------------------------------------------------------
+10. HISTÓRICO DE VERSÕES (resumo de log.txt)
+--------------------------------------------------------------------------------
+1.0.1 -> 1.0.2 (26/09): cabeçalho com crédito + versão automática + data do banco;
+  correção "BUSCADOR ÓPTICO"; ordenação do OCR; Varjão; service worker de outra app.
+1.0.3 (29/09): merge não destrutivo (reimportação não apagava campos) + telefone
+  8-11 dígitos (divergência com Acompanha Digital corrigida).
+1.0.4 (30/09): cabeçalho simplificado (2 linhas, sem crédito/PMJ).
+1.0.5 (30/09): 4º relatório BI (s3cf2a), 4º telefone (TEL. COMERCIAL), union-find,
+  regra Augusta/Dario Bocchino.
+1.0.6 (01/10): busca difusa (fuse.js), Faxina, retorno visual de carga/gravação,
+  favicon, service worker próprio, base64 em blocos, Faxina com progresso (23 etapas).
+1.0.7 (02/10): entrega Play Store (versionCode 8; AAB 7,5 MB + APK 7,6 MB assinados).
+05/10: unificação do MSIX neste repo, publicação da política de privacidade no GitHub
+  Pages, geração do .msix via makeappx, correção de mojibake no manifesto.
+
+--------------------------------------------------------------------------------
+11. STATUS / PENDÊNCIAS (em 05-06/10/2026)
+--------------------------------------------------------------------------------
+- Pacote MSIX pronto e validado (sem assinatura); falta: screenshots desktop 1366x768+
+  e conclusão da submissão no Partner Center (ver msix/PARTNER_CENTER.md).
+- Repo Windows espelhado e sincronizado (commits c7d679e, 4d118d0, 8f9a66c).
+- Git local: branch main, origin = wavizo-bot/CadastroClinico; último commit
+  "Atualização completa do projeto" (8a4321f); mudanças de 05/10 ainda não commitadas
+  (msix/, favicon, service-worker, testes novos etc. — verificar git status).
+
+FIM DO MANUAL — para detalhes de implementação, consulte log.txt e os próprios
+fontes (client/src/lib/* são pequenos e bem comentados em PT-BR).
