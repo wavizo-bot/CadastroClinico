@@ -14,7 +14,9 @@ $exeName  = "CadastroClinicoMSIX.exe"
 Write-Host "[1/5] Build web (vite)..."
 Push-Location $rootDir
 try {
-    pnpm run build
+    # cmd /c evita que o stderr do Vite seja tratado como erro terminante pelo
+    # PowerShell 5.1 com $ErrorActionPreference = "Stop".
+    cmd /c "pnpm run build 2>&1"
     if ($LASTEXITCODE -ne 0) { throw "Falha no build web (pnpm run build)." }
 }
 finally { Pop-Location }

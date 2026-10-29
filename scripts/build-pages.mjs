@@ -9,12 +9,15 @@ import path from "node:path";
 
 const root = process.cwd();
 const outDir = path.resolve(root, "docs", "app");
+// O outDir do Vite é relativo ao `root` do config (client/). Passar caminho
+// absoluto com espaço quebra no shell do Windows (CMD).
+const outDirArg = path.relative(path.resolve(root, "client"), outDir);
 const base = "/CadastroClinico/app/";
 
 console.log(`[pages] vite build -> ${outDir} (base ${base})`);
 execFileSync(
   process.platform === "win32" ? "pnpm.cmd" : "pnpm",
-  ["exec", "vite", "build", `--base=${base}`, `--outDir=${outDir}`],
+  ["exec", "vite", "build", `--base=${base}`, `--outDir=${outDirArg}`],
   { stdio: "inherit", cwd: root, shell: process.platform === "win32" },
 );
 

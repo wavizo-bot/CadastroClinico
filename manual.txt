@@ -1,7 +1,7 @@
 ================================================================================
 MANUAL DO PROJETO — "CADASTRO CLÍNICO"
-Pasta: C:\APPS\Cadastro Clinico
-Gerado: 06/10/2026 | Versão do app: 1.0.10 (Android versionCode 9 | MSIX publicado 1.0.10.0)
+Pasta: raiz do repositório (CadastroClinico/)
+Gerado: 06/10/2026 | Atualizado: 29/10/2026 | Versão do app: 1.0.15 (Android versionCode 19 | MSIX 1.0.15.0)
 ================================================================================
 
 TL;DR
@@ -10,9 +10,10 @@ App móvel + web brasileiro, 100% OFFLINE, para profissionais de saúde guardare
 consultarem fichas de pacientes, território (ruas x equipes) e funcionamento da
 unidade. React 19 + Vite + Capacitor (Android) + wrapper C#/WebView2 (Windows/MSIX).
 Os dados ficam criptografados (AES-GCM) no IndexedDB local. Não tem servidor, não
-tem conta, não envia nada para lugar nenhum. É um app PRIVADO/INDEPENDENTE (não é
-governamental, não é da prefeitura/PMJ), apesar da origem no contexto "Clínica da
-Família II".
+tem conta e não envia fichas para lugar nenhum. A internet é usada apenas no
+recurso opcional "Importar da URL" (download do arquivo indicado pelo usuário) e
+ao abrir links de WhatsApp. É um app PRIVADO/INDEPENDENTE (não é governamental,
+não é da prefeitura/PMJ), apesar da origem no contexto "Clínica da Família II".
 
 --------------------------------------------------------------------------------
 0. NOMES E IDENTIDADE (leia primeiro — evita confusão)
@@ -223,7 +224,7 @@ OUTROS:
 - Voltar físico do Android: @capacitor/app integrado ao histórico do wouter.
 - service-worker.js próprio: serve como script válido e se AUTO-DESREGISTRA + remove
   caches antigos + recarrega abas uma vez (limpa worker de outra app — "Kuaa" — que
-  rodava em localhost:3001 e causava "Response body is already used").
+  rodava em um servidor de desenvolvimento na porta 3001 e causava "Response body is already used").
 
 --------------------------------------------------------------------------------
 5. TELAS E FLUXOS
@@ -276,39 +277,47 @@ versionName/versionCode. A Play Store exige versionCode maior a cada envio.
 --------------------------------------------------------------------------------
 GOOGLE PLAY (Android):
 - App: com.cadclinico.app, label "Cadastro Clinico", minSdk 24, target 36.
-- Categoria Produtividade/Ferramentas; 18+; sem anúncios/compras; sem permissões
-  (NEM INTERNET — app offline; único link externo opcional = WhatsApp wa.me).
+- Categoria Produtividade/Ferramentas; 18+; sem anúncios/compras; INTERNET
+  declarada apenas para o recurso opcional "Importar da URL" (download do arquivo
+  indicado pelo usuário). Sem contatos/GPS/microfone; a câmera do Buscador óptico
+  é acionada pelo seletor do sistema.
 - Data Safety: "não coleta/compartilha nada"; criptografia em repouso (AES-GCM);
   respostas prontas em PLAY_DATA_SAFETY.txt.
 - Política de privacidade (obrigatória, URL HTTPS pública):
-  https://wavizo-bot.github.io/CadastroClinicoMSIX/politica-privacidade.html
-  (arquivo fonte: client/public/politica-privacidade.html — atualizar nas 3 cópias:
-  client/public, dist/public e android assets ao editar).
+  https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
+  (arquivo fonte: client/public/politica-privacidade.html — atualizar nas cópias:
+  client/public, docs/, dist/public e android assets ao editar).
 - Textos de listing prontos em PLAY_STORE_LISTING.txt.
 - Chaves Play (registro fornecido pelo usuário em 15/10/2026):
   Chave de assinatura do app (app signing — fica com o Google):
     SHA-1  FB:5B:37:4A:E9:5C:DD:14:39:49:6E:4B:96:A3:D8:44:CE:23:F3:65
     SHA-256 27:4C:1C:A2:49:11:04:6D:2D:48:23:D5:4E:20:C4:F2:6C:83:2B:EC:69:
             DE:AB:BE:44:57:C5:50:BA:0E:B4:B6
-  Certificado da chave de upload: C:\APPS\Cadastro Clinico\upload_cert.der
+  Certificado da chave de upload: upload_cert.der (raiz do repositório; NÃO
+  versionado)
     MD5    3F:DF:4B:31:B6:DD:48:74:DA:C5:A0:EE:34:89:4B:D9
     SHA-1  BE:FA:A2:26:67:A5:B6:81:7E:C6:61:AB:8A:86:68:B9:C1:2C:62:E4
     SHA-256 3F:BB:AD:00:28:F6:3A:FA:0E:C8:A1:76:E3:66:93:21:6E:A2:75:FD:50:
             26:35:BF:8F:F5:20:4B:C0:A5:C1:B9
-  Última versão publicada na Play: 1.0.10 (versionCode 9).
+  Última versão enviada ao Play: 1.0.10 (versionCode 9). Pacote atual:
+  1.0.15 (versionCode 19), pronto para envio; nunca reutilizar o 18 (queimado).
 
 MICROSOFT STORE (Windows):
 - Identidade: Name wavizo.CadastroClnico | Publisher CN=57BB464E-553F-45B6-A4ED-B253157408EB
   | PublisherDisplayName wavizo | PFN wavizo.CadastroClnico_c5p81jb0en0bm |
-  Store ID 9P88RMK5TDSB | último publicado: 1.0.10.0; manifesto/build local
-  (msix/CadastroClinicoMSIX/Package.appxmanifest): 1.0.13.0 — ainda NÃO
-  publicado (confirmar no Partner Center antes de assumir como vigente).
-- Pacotes (padrão desde 20/10/2026): entregas/windows/wavizo.CadastroClnico_1.0.13.0_x64.msix
-  é o mais recente (movido de msix/dist; 1.0.8/1.0.9/1.0.10 em
-  entregas/windows/historico/; UNSIGNED — a Store re-assina; aceito) e
-  entregas/play/app-release-vC17-1.0.13.aab é o AAB pronto para envio.
+  Store ID 9P88RMK5TDSB | último publicado: 1.0.13.0; manifesto/build local
+  (msix/CadastroClinicoMSIX/Package.appxmanifest): 1.0.15.0 — pronto para envio
+  (o Partner Center precisa de um novo upload; confirmar no painel).
+- Política de privacidade no Partner Center:
+  https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
+- Pacotes: entregas/windows/wavizo.CadastroClnico_1.0.15.0_x64.msix é o mais
+  recente (1.0.8/1.0.9/1.0.10/1.0.13 em entregas/windows/historico/; UNSIGNED —
+  a Store re-assina; aceito) e entregas/play/app-release-vC19-1.0.15.aab é o AAB
+  pronto para envio.
 - Guia de submissão completo com respostas prontas: msix/PARTNER_CENTER.md.
-- Pendência: screenshots desktop 1366x768+.
+- Screenshots desktop 1366x768 prontas em docs/img/ (WebP) e
+  msix/listing/screenshots/ (PNG), com dados fictícios. A Faxina ficou fora da
+  landing e da loja por exibir CPF/CNS fictícios inválidos.
 
 REPOSITÓRIOS:
 - Android/Web: https://github.com/wavizo-bot/CadastroClinico.git (origin deste repo)
@@ -324,7 +333,17 @@ REPOSITÓRIOS:
 - Ao MOVER a pasta do projeto, node_modules quebra (junctions apontam pro caminho
   antigo) -> rodar pnpm install.
 - Qualquer edição de texto em arquivo PT-BR: checar U+FFFD (mojibake) antes de buildar.
-- Dev: se um service worker de outra app rodar em localhost:3001, ele intercepta
+- PowerShell 5.1 com $ErrorActionPreference = "Stop" trata stderr do Vite/pnpm como
+  erro terminante. No msix/build.ps1 a chamada usa `cmd /c "pnpm run build"` para
+  não abortar por aviso pré-existente (ocr/tesseract e chunk > 500 kB).
+- Vite `--outDir` é relativo ao root do config (client/). Em scripts/build-pages.mjs
+  passar caminho absoluto com espaço quebra no CMD; usar `../docs/app`.
+- Segredos: o keystore, o log.txt e a senha do build.gradle já entraram no histórico
+  uma vez (29/10/2026). Foram removidos do índice e do histórico com git-filter-repo,
+  com force-push excepcional e rotação da chave de upload no Play Console. NUNCA
+  versionar keystore/properties/log; o build lê android/keystore.properties (ignorado)
+  ou variáveis CADCLINICO_*.
+- Dev: se um service worker de outra app rodar no servidor de desenvolvimento na porta 3001, ele intercepta
   tudo (já corrigido com o worker auto-remoção).
 - Vite avisa que ocr/tesseract.min.js não é module — aviso pré-existente, ignorar.
 - Bases antigas sem databaseDate usam updatedAt como fallback; mergeData mantém a
@@ -333,13 +352,13 @@ REPOSITÓRIOS:
 --------------------------------------------------------------------------------
 9. DOCUMENTOS DO REPO (onde ler o quê)
 --------------------------------------------------------------------------------
-log.txt                    HISTÓRICO COMPLETO de entregas (26/09 a 05/10/2026): o que
+log.txt                    HISTÓRICO COMPLETO de entregas (26/09 a 29/10/2026): o que
                            mudou, por quê, presunções, erros e correções, verificações.
                            PRIMEIRO LUGAR PARA BUSCAR CONTEXTO.
 todo.md                    Backlog (108 itens, quase todos [x]). CUIDADO: contém itens
                            com versão "1.20.x" (senha trimestral, bloqueio por 2 dias,
                            limpeza após 10 dias etc.) que NÃO batem com o package.json
-                           atual (1.0.7) — provavelmente pertencem ao app irmão
+                           atual (1.0.15) — provavelmente pertencem ao app irmão
                            Acompanha Digital. Confirmar antes de usar como escopo atual.
 ideas.md                   Direção visual "Saúde Pública Editorial": Azul Clínica
                            #123B67, fontes Outfit (títulos) + Source Sans 3 (textos),
@@ -364,16 +383,31 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
 1.0.7 (02/10): entrega Play Store (versionCode 8; AAB 7,5 MB + APK 7,6 MB assinados).
 05/10: unificação do MSIX neste repo, publicação da política de privacidade no GitHub
   Pages, geração do .msix via makeappx, correção de mojibake no manifesto.
+1.0.13 (15/10): MSIX 1.0.13.0 enviado ao Partner Center; AAB vC17; termos v1.0.
+1.0.14 (27/10): AAB vC18 rejeitado no Play por colisão de versionCode; importador
+  por URL; remoção de dados reais do binário; AAB vC18 regravado.
+1.0.15 (29/10): AAB vC19 (R8 full mode, edge-to-edge/IME, INTERNET para "Importar
+  da URL"), termos v1.1, política/termos/aviso revisados, landing + docs/app no
+  GitHub Pages, screenshots reais com dados fictícios, purga do keystore/log/senha
+  do histórico (git-filter-repo) e rotação da upload key. MSIX 1.0.15.0 gerado.
 
 --------------------------------------------------------------------------------
-11. STATUS / PENDÊNCIAS (em 05-06/10/2026)
+11. STATUS / PENDÊNCIAS (em 29/10/2026)
 --------------------------------------------------------------------------------
-- Pacote MSIX pronto e validado (sem assinatura); falta: screenshots desktop 1366x768+
-  e conclusão da submissão no Partner Center (ver msix/PARTNER_CENTER.md).
-- Repo Windows espelhado e sincronizado (commits c7d679e, 4d118d0, 8f9a66c).
-- Git local: branch main, origin = wavizo-bot/CadastroClinico; último commit
-  "Atualização completa do projeto" (8a4321f); mudanças de 05/10 ainda não commitadas
-  (msix/, favicon, service-worker, testes novos etc. — verificar git status).
+- AAB v19 (1.0.15) validado: versionCode 19, 6,83 MB, assinatura BE:FA, R8 ativo,
+  proguard.map presente. Teste no aparelho: abre e importa dados.rar (15804
+  pacientes, 69 ruas). Falta testar edge-to-edge/IME e "Importar da URL" no
+  aparelho quando o adb voltar.
+- MSIX 1.0.15.0: build/validação por msix/build.ps1; enviar ao Partner Center
+  (substituir o 1.0.13.0) e atualizar a URL da política para
+  https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html.
+- Landing + docs/app prontos em docs/; falta commit/push, ativação do Pages
+  (main /docs) e teste HTTP 200 de /, /app/, 3 docs e imagens.
+- Play Console: enviar o AAB v19 e rotacionar a upload key (ação do usuário;
+  o Google valida). Nunca reutilizar o versionCode 18.
+- Git: main local/remoto em ad9f2c6 (histórico purgado); mudanças desta etapa
+  (docs/, README, manual, msix, scripts) ainda não commitadas. O repo Windows
+  (CadastroClinicoMSIX) não é mais a fonte da política.
 
 FIM DO MANUAL — para detalhes de implementação, consulte log.txt e os próprios
 fontes (client/src/lib/* são pequenos e bem comentados em PT-BR).

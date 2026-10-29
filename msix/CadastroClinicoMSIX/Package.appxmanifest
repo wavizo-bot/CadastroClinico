@@ -7,7 +7,7 @@
   <Identity
     Name="wavizo.CadastroClnico"
     Publisher="CN=57BB464E-553F-45B6-A4ED-B253157408EB"
-    Version="1.0.13.0"
+    Version="1.0.15.0"
     ProcessorArchitecture="x64" />
   <Properties>
     <DisplayName>Cadastro Clínico</DisplayName>

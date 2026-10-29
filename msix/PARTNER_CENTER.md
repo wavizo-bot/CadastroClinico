@@ -13,7 +13,7 @@
 | Package Family Name (PFN) | `wavizo.CadastroClnico_c5p81jb0en0bm` |
 | Package SID | `S-1-15-2-2847593193-4293426457-1784438407-1723172423-4006318822-2270365518-2666157207` |
 | Store ID | `9P88RMK5TDSB` |
-| Versão | `1.0.13.0` — **política da Store: o 4º campo (revisão) SEMPRE 0** (erro: *"não é permitido ... número de revisão diferente de zero"*). Incrementar o **3º campo** a cada upload: `1.0.8.0` → `1.0.9.0` → `1.0.10.0` → `1.0.13.0` (15/10/2026: pulou 1.0.11/1.0.12 para alinhar Windows e Android, ambos em **1.0.13**) → próxima: `1.0.14.0`... (nunca reutilizar versões já enviadas, mesmo que reprovadas). O `package.json` foi sincronizado em **1.0.13** em 15/10/2026 (segue o app web/Android; antes divergia com 1.0.7) |
+| Versão | `1.0.15.0` — **política da Store: o 4º campo (revisão) SEMPRE 0** (erro: *"não é permitido ... número de revisão diferente de zero"*). Incrementar o **3º campo** a cada upload: `1.0.8.0` → `1.0.9.0` → `1.0.10.0` → `1.0.13.0` → `1.0.15.0` (29/10/2026, alinhado ao Android 1.0.15 / versionCode 19) → próxima: `1.0.16.0`... (nunca reutilizar versões já enviadas, mesmo que reprovadas). O `package.json` está em **1.0.15** (segue o app web/Android) |
 | Arquitetura | `ProcessorArchitecture="x64"` no Identity (era `Neutral` — colidia o nome completo entre uploads e não descrevia o conteúdo x64) |
 
 **DisplayName:** o `Package/Properties/DisplayName` do manifesto deve bater **exatamente** com o nome reservado na Store: `Cadastro Clínico` (com acento). O `build.ps1` lê/escreve o manifesto em UTF-8 explícito sem BOM — se fosse lido como ANSI, o Partner Center rejeitaria com erro *"nome de exibição que você não reservou: Cadastro ClÃ­nico"* (mojibake, corrigido em 05/10/2026).
@@ -27,16 +27,16 @@ Repositórios:
 **Resposta em Properties → "Este produto acessa, coleta ou transmite informações pessoais?": SIM.**
 (Motivo honesto: o app *armazena* dados pessoais digitados pelo usuário — nome, CPF/CNS, endereço — no IndexedDB local. Não *transmite* nada a servidores.) Com "Sim", o Partner Center **exige a URL da política de privacidade**.
 
-- **Arquivo-fonte:** `client/public/politica-privacidade.html` (vira `dist/public/politica-privacidade.html` no build; já atualizado para citar Android + Windows)
+- **Arquivo-fonte:** `client/public/politica-privacidade.html` (vira `dist/public/politica-privacidade.html` no build; citada Android + Windows)
 - **URL PUBLICADA (usar no Partner Center):**
-  `https://wavizo-bot.github.io/CadastroClinicoMSIX/politica-privacidade.html`
-  (GitHub Pages ativo no repositório Windows, publicado em 05/10/2026 — verificado no ar)
+  `https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html`
+  (GitHub Pages do repositório principal, servido a partir de `docs/`; a página também fica em `/app/` para uso offline)
 - **Campo no Partner Center:** Properties → Privacy policy URL (`https://` acima)
 - **Declaração para o campo de texto / notas (copiar e colar):**
 
-> O Cadastro Clínico não coleta, não transmite e não compartilha dados pessoais com terceiros. Não há conta, login, servidor, analytics, anúncios ou SDKs de terceiros. Os dados digitados pelo usuário (fichas de clientes) ficam somente no armazenamento local do dispositivo (IndexedDB cifrado com AES-GCM e chave gerada no próprio dispositivo). O app funciona offline; o acesso à internet do pacote (`internetClient`) serve apenas para abrir links externos opcionais (ex.: WhatsApp) por ação do usuário. O usuário pode apagar todos os dados a qualquer momento no app (Banco de Dados → Reiniciar) ou desinstalando. Contato de privacidade: mmr05@hotmail.com. Política completa: https://wavizo-bot.github.io/CadastroClinicoMSIX/politica-privacidade.html.
+> O Cadastro Clínico não coleta, não transmite e não compartilha dados pessoais com terceiros. Não há conta, login, servidor, analytics, anúncios ou SDKs de terceiros. Os dados digitados pelo usuário (fichas de clientes) ficam somente no armazenamento local do dispositivo (IndexedDB cifrado com AES-GCM e chave gerada no próprio dispositivo). O app funciona offline; a internet é usada apenas (a) para baixar um arquivo .rar/.zip/.csv que o próprio usuário indica no recurso opcional "Importar da URL" e (b) para abrir links externos opcionais (ex.: WhatsApp) por ação do usuário. Nenhuma ficha é enviada a servidores. O usuário pode apagar todos os dados a qualquer momento no app (Banco de Dados → Reiniciar) ou desinstalando. Contato de privacidade: mmr05@hotmail.com. Política completa: https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html.
 
-**Manutenção da URL:** a página é publicada a partir da raiz do branch `main` do repositório Windows (`politica-privacidade.html`). Atualizações: editar a fonte em `client/public/politica-privacidade.html`, copiar para a raiz do repo Windows e fazer push (Pages reconstrói em ~1 min).
+**Manutenção da URL:** a página é publicada a partir de `docs/` no branch `main` do repositório principal (`wavizo-bot/CadastroClinico`). Atualizações: editar a fonte em `client/public/politica-privacidade.html`, copiar para `docs/` (e para as cópias do build) e fazer push; o Pages reconstrói em ~1 min. A URL publicada anteriormente em outro repositório não deve mais ser usada.
 
 ## 3. Checklist de submissão no Partner Center
 
@@ -53,7 +53,7 @@ Ordem das telas (docs Microsoft, app MSIX): **Pricing and availability → Prope
 - Website: opcional; Contato/suporte: **mmr05@hotmail.com**
 - Product declarations: "depende de drivers não-Microsoft" = **Não**; "testado para acessibilidade" = Não (se não testou); "suporta caneta" = Não
 - **Notes for certification (copiar e colar):**
-  > Aplicativo 100% offline que carrega interface de arquivos locais embutidos no pacote (WebView2). A capacidade `internetClient` é usada apenas para abrir links externos opcionais (WhatsApp) por ação do usuário. Nenhum dado é transmitido a servidores. Sem backend, sem anúncios, sem compras.
+  > Aplicativo 100% offline que carrega interface de arquivos locais embutidos no pacote (WebView2). A capacidade `internetClient` é usada apenas (a) para baixar um arquivo .rar/.zip/.csv que o próprio usuário indica no recurso opcional "Importar da URL" e (b) para abrir links externos opcionais (WhatsApp) por ação do usuário. Nenhum cadastro é transmitido a servidores. Sem backend, sem anúncios, sem compras.
 - System requirements: nenhuma exigência especial (WebView2 Runtime já é pré-instalado no Win 10/11 atualizado)
 - Restricted capabilities: **nenhuma** declarada
 
@@ -63,13 +63,13 @@ Ordem das telas (docs Microsoft, app MSIX): **Pricing and availability → Prope
 
 ### 3.4 Packages
 - Gerar o pacote nesta máquina: `.\msix\build.ps1` (**já funciona**: .NET 8 SDK + `makeappx` do Windows SDK — Visual Studio não é necessário)
-- Upload do `.msix` gerado em **`msix\dist\wavizo.CadastroClnico_1.0.13.0_x64.msix`** (74,1 MB; formato aceito pelo Partner Center junto com .msixbundle/.msixupload)
+- Upload do `.msix` gerado em **`msix\dist\wavizo.CadastroClnico_1.0.15.0_x64.msix`** (formato aceito pelo Partner Center junto com .msixbundle/.msixupload; o tamanho exato é informado ao final do `build.ps1`)
 - **Não precisa assinar**: a Microsoft re-assina o pacote após a certificação (docs: *App package requirements for MSIX app*)
 - **Upload:** se o submission já tem um `.msix` antigo, o Partner Center pode reclamar de nome completo duplicado. Nesse caso: apagar as entradas antigas em Packages **e** subir o arquivo novo (versão incrementada) — nunca dois pacotes com versão/arquitetura iguais e conteúdo diferente
 - Arquitetura: **x64 autocontido** (não exige .NET na máquina do usuário); para cobrir ARM64 no futuro, gerar variante `-r win-arm64`
-- "What's new in this version" (limite 1500 caracteres) — texto pronto para a **1.0.13.0** (15/10/2026):
+- "What's new in this version" (limite 1500 caracteres) — texto pronto para a **1.0.15.0** (29/10/2026):
 
-  > Adaptado à nova tabela do sistema oficial de banco de dados: a importação reconhece os quatro relatórios atuais (cadastro, questionário de saúde, análise detalhada e cadastros detalhados) e une tudo sozinha — escolha os arquivos e o programa lê, reconhece, unifica e substitui o banco com progresso visível em cada etapa. Perfil de saúde mais completo e correto: doenças cardíacas e respiratórias agora aparecem para quem tem (antes os positivos eram ignorados) e entram novas informações de rins, AVC e infarto. Botão simplificado para "IMPORTAR". Suporte a .zip e .rar com senha automática, banco cifrado no dispositivo, ofuscação do código, termos de uso e mensagens de erro mais claras.
+  > Interface ajustada às bordas e à barra de status do Windows e do Android, com melhor aproveitamento da tela e do teclado. A importação em lote continua aceitando CSV, TSV, TXT, RAR e ZIP, e agora há também a opção "Importar da URL": você cola um link HTTPS de um arquivo .rar, .zip ou .csv e o app baixa e importa o conteúdo — nenhuma ficha é enviada. O banco continua cifrado no dispositivo (AES-GCM), sem conta, nuvem, anúncios ou analytics. Termos de uso e política de privacidade revisados (v1.1), com explicação clara sobre armazenamento local, internet opcional e direitos LGPD/GDPR. O código do app foi otimizado com R8 em modo completo, reduzindo o tamanho do pacote e melhorando o desempenho.
 
 ### 3.5 Store listings (por idioma: pt-BR)
 - **Nome (obrigatório):** Cadastro Clínico
@@ -85,7 +85,7 @@ Ordem das telas (docs Microsoft, app MSIX): **Pricing and availability → Prope
   8. Criptografia local AES-GCM com chave gerada no dispositivo
   9. Senha opcional de 4 caracteres escolhida por você
   10. Leitura óptica local (Tesseract embutido) — imagem nunca sai do dispositivo
-- **Screenshots (obrigatório ≥1, recomendado 4+):** PNG, **mínimo 1366×768**, máx 3840×2160, ≤50 MB, paisagem ou retrato, até 10 desktop. **PENDENTE** (capturar da janela do app em Windows — o wrapper precisa ser compilado primeiro)
+- **Screenshots (obrigatório ≥1, recomendado 4+):** PNG, **mínimo 1366×768**, máx 3840×2160, ≤50 MB, paisagem ou retrato, até 10 desktop. Capturas reais com dados fictícios em `docs/img/` (1366×768) e versões PNG em `msix/listing/screenshots/` — subir home, pacientes, ficha, território, equipe e banco.
 - **1:1 App tile icon (300×300 PNG):** pronto em `msix/listing/store-tile-300x300.png`
 - Store logos extras: opcionais (recomendados para boa exibição)
 
@@ -97,9 +97,9 @@ Ordem das telas (docs Microsoft, app MSIX): **Pricing and availability → Prope
 
 | # | Pendência | Status |
 |---|---|---|
-| 1 | ~~Instalar .NET 8 SDK e rodar `.\msix\build.ps1`~~ | **CONCLUÍDO** — pacote gerado e validado: `msix/dist/wavizo.CadastroClnico_1.0.7.0_x64.msix` (73,2 MB, 05/10/2026); smoke test do app OK |
-| 2 | Capturar screenshots desktop (1366×768+, até 10) do app compilado | **PENDENTE** — rodar `msix\bin\msix-layout\CadastroClinicoMSIX.exe` e capturar (recomendado: fichas, território, importação CSV, buscador óptico) |
-| 3 | ~~Publicar `politica-privacidade.html` em URL HTTPS~~ | **CONCLUÍDO** — https://wavizo-bot.github.io/CadastroClinicoMSIX/politica-privacidade.html (Pages ativo, verificado no ar) |
+| 1 | ~~Instalar .NET 8 SDK e rodar `.\msix\build.ps1`~~ | **CONCLUÍDO** — pacote gerado e validado: `msix/dist/wavizo.CadastroClnico_1.0.15.0_x64.msix` (74,1 MB, 29/10/2026); smoke test do app OK |
+| 2 | Capturar screenshots desktop (1366×768+, até 10) do app compilado | **CONCLUÍDO (capturas reais)** — `docs/img/` (WebP) e `msix/listing/screenshots/` (PNG 1366×768) com dados fictícios; subir as 6 principais no Partner Center |
+| 3 | ~~Publicar `politica-privacidade.html` em URL HTTPS~~ | **CONCLUÍDO** — arquivo em `docs/` no repositório principal; a URL pública entra no ar com o Pages em `main` / `docs`: https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html |
 | 4 | Confirmar/obter o rating IARC (reaproveitar ID da Play) | Pendente (conta Partner Center) |
 | 5 | Incrementar versão no manifesto a cada nova submissão | Rotina |
 | 6 | ~~Atualizar repo Windows com conteúdo unificado~~ | **CONCLUÍDO** — push `c7d679e` em 05/10/2026 (web/ removida, msix/ + política no ar) |
@@ -121,4 +121,4 @@ Ordem das telas (docs Microsoft, app MSIX): **Pricing and availability → Prope
 | 2 | 06/10/2026 | *"dois pacotes com o nome completo wavizo.CadastroClnico_1.0.7.0_Neutral_ ... conteúdos diferentes"* | Pacote antigo (mojibake) ainda no submission + novo upload com mesma versão e arquitetura `Neutral` | `ProcessorArchitecture="x64"` + bump de versão; apagar entradas antigas em Packages antes de subir o novo |
 | 3 | 06/10/2026 | *"não é permitido ... número de revisão diferente de zero ... especifica 1.0.7.1"* | Versão incrementada no 4º campo (revisão) — proibido pela Store | 4º campo = `0` sempre; incrementar o 3º campo: `1.0.8.0` |
 
-**Pacote atual:** `msix/dist/wavizo.CadastroClnico_1.0.13.0_x64.msix` (74,1 MB, sem assinatura, build 15/10/2026 — adaptado à nova tabela do BI com união automática dos 4 relatórios em fluxo único; correção das condições de saúde (positivos antes ignorados) + novas: rins, AVC, infarto; botão "IMPORTAR"; ofuscação do bundle; termos v1.0; sem arquivos residuais de ferramenta no pacote) — remover entradas antigas em *Packages* e enviar este.
+**Pacote atual:** `msix/dist/wavizo.CadastroClnico_1.0.15.0_x64.msix` (build 29/10/2026 — edge-to-edge/IME, "Importar da URL", termos v1.1, R8 full mode, política revisada; sem assinatura, a Store re-assina) — remover entradas antigas em *Packages* e enviar este.

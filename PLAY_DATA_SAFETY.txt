@@ -29,4 +29,5 @@ DATA SAFETY — Cadastro Clínico (com.cadclinico.app) — Respostas para Play C
    Sem anúncios, sem compras internas, sem assinaturas.
 
 10) URL da política de privacidade (obrigatória):
-   Hospede o arquivo client/public/politica-privacidade.html em URL HTTPS pública (ex.: GitHub Pages, seu domínio) e cole no Play Console → Política de privacidade. O mesmo arquivo já está embutido em dist/public/politica-privacidade.html e em android/assets/public para acesso offline.
+   https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
+   (o mesmo arquivo também é servido dentro de /app/ e fica embutido em dist/public e nos assets Android para acesso offline)
