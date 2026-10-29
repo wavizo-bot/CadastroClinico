@@ -36,7 +36,7 @@ Repositórios:
 
 > O Cadastro Clínico não coleta, não transmite e não compartilha dados pessoais com terceiros. Não há conta, login, servidor, analytics, anúncios ou SDKs de terceiros. Os dados digitados pelo usuário (fichas de clientes) ficam somente no armazenamento local do dispositivo (IndexedDB cifrado com AES-GCM e chave gerada no próprio dispositivo). O app funciona offline; a internet é usada apenas (a) para baixar um arquivo .rar/.zip/.csv que o próprio usuário indica no recurso opcional "Importar da URL" e (b) para abrir links externos opcionais (ex.: WhatsApp) por ação do usuário. Nenhuma ficha é enviada a servidores. O usuário pode apagar todos os dados a qualquer momento no app (Banco de Dados → Reiniciar) ou desinstalando. Contato de privacidade: mmr05@hotmail.com. Política completa: https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html.
 
-**Manutenção da URL:** a página é publicada a partir de `docs/` no branch `main` do repositório principal (`wavizo-bot/CadastroClinico`). Atualizações: editar a fonte em `client/public/politica-privacidade.html`, copiar para `docs/` (e para as cópias do build) e fazer push; o Pages reconstrói em ~1 min. A URL publicada anteriormente em outro repositório não deve mais ser usada.
+**Manutenção da URL:** a página é publicada a partir de `docs/` no branch `main` do repositório principal (`wavizo-bot/CadastroClinico`). Atualizações: editar a fonte em `client/public/politica-privacidade.html`, copiar para `docs/` (e para as cópias do build) e fazer push; o Pages reconstrói em ~1 min. **Pages ativo em `main` / `docs` desde 29/10/2026** (build do commit `9d22ddd`; HTTPS forçado). URL verificada com HTTP 200 e conteúdo idêntico à fonte local. A URL publicada anteriormente em outro repositório não deve mais ser usada.
 
 ## 3. Checklist de submissão no Partner Center
 
@@ -99,7 +99,7 @@ Ordem das telas (docs Microsoft, app MSIX): **Pricing and availability → Prope
 |---|---|---|
 | 1 | ~~Instalar .NET 8 SDK e rodar `.\msix\build.ps1`~~ | **CONCLUÍDO** — pacote gerado e validado: `msix/dist/wavizo.CadastroClnico_1.0.15.0_x64.msix` (74,1 MB, 29/10/2026); smoke test do app OK |
 | 2 | Capturar screenshots desktop (1366×768+, até 10) do app compilado | **CONCLUÍDO (capturas reais)** — `docs/img/` (WebP) e `msix/listing/screenshots/` (PNG 1366×768) com dados fictícios; subir as 6 principais no Partner Center |
-| 3 | ~~Publicar `politica-privacidade.html` em URL HTTPS~~ | **CONCLUÍDO** — arquivo em `docs/` no repositório principal; a URL pública entra no ar com o Pages em `main` / `docs`: https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html |
+| 3 | ~~Publicar `politica-privacidade.html` em URL HTTPS~~ | **CONCLUÍDO (29/10/2026)** — Pages ativo em `main` / `docs` (build `9d22ddd`, HTTPS forçado); URL testada com HTTP 200: https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html |
 | 4 | Confirmar/obter o rating IARC (reaproveitar ID da Play) | Pendente (conta Partner Center) |
 | 5 | Incrementar versão no manifesto a cada nova submissão | Rotina |
 | 6 | ~~Atualizar repo Windows com conteúdo unificado~~ | **CONCLUÍDO** — push `c7d679e` em 05/10/2026 (web/ removida, msix/ + política no ar) |
