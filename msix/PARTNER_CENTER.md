@@ -13,7 +13,7 @@
 | Package Family Name (PFN) | `wavizo.CadastroClnico_c5p81jb0en0bm` |
 | Package SID | `S-1-15-2-2847593193-4293426457-1784438407-1723172423-4006318822-2270365518-2666157207` |
 | Store ID | `9P88RMK5TDSB` |
-| Versão | `1.0.15.0` — **política da Store: o 4º campo (revisão) SEMPRE 0** (erro: *"não é permitido ... número de revisão diferente de zero"*). Incrementar o **3º campo** a cada upload: `1.0.8.0` → `1.0.9.0` → `1.0.10.0` → `1.0.13.0` → `1.0.15.0` (29/10/2026, alinhado ao Android 1.0.15 / versionCode 19) → próxima: `1.0.16.0`... (nunca reutilizar versões já enviadas, mesmo que reprovadas). O `package.json` está em **1.0.15** (segue o app web/Android) |
+| Versão | `1.0.16.0` — **política da Store: o 4º campo (revisão) SEMPRE 0** (erro: *"não é permitido ... número de revisão diferente de zero"*). Incrementar o **3º campo** a cada upload: `1.0.8.0` → `1.0.9.0` → `1.0.10.0` → `1.0.13.0` → `1.0.15.0` → `1.0.16.0` (30/10/2026, ícones unificados; alinhado ao Android 1.0.16 / versionCode 20) → próxima: `1.0.17.0`... (nunca reutilizar versões já enviadas, mesmo que reprovadas). O `package.json` está em **1.0.16** (segue o app web/Android) |
 | Arquitetura | `ProcessorArchitecture="x64"` no Identity (era `Neutral` — colidia o nome completo entre uploads e não descrevia o conteúdo x64) |
 
 **DisplayName:** o `Package/Properties/DisplayName` do manifesto deve bater **exatamente** com o nome reservado na Store: `Cadastro Clínico` (com acento). O `build.ps1` lê/escreve o manifesto em UTF-8 explícito sem BOM — se fosse lido como ANSI, o Partner Center rejeitaria com erro *"nome de exibição que você não reservou: Cadastro ClÃ­nico"* (mojibake, corrigido em 05/10/2026).
@@ -63,13 +63,13 @@ Ordem das telas (docs Microsoft, app MSIX): **Pricing and availability → Prope
 
 ### 3.4 Packages
 - Gerar o pacote nesta máquina: `.\msix\build.ps1` (**já funciona**: .NET 8 SDK + `makeappx` do Windows SDK — Visual Studio não é necessário)
-- Upload do `.msix` gerado em **`msix\dist\wavizo.CadastroClnico_1.0.15.0_x64.msix`** (formato aceito pelo Partner Center junto com .msixbundle/.msixupload; o tamanho exato é informado ao final do `build.ps1`)
+- Upload do `.msix` gerado em **`msix\dist\wavizo.CadastroClnico_1.0.16.0_x64.msix`** (formato aceito pelo Partner Center junto com .msixbundle/.msixupload; o tamanho exato é informado ao final do `build.ps1`)
 - **Não precisa assinar**: a Microsoft re-assina o pacote após a certificação (docs: *App package requirements for MSIX app*)
 - **Upload:** se o submission já tem um `.msix` antigo, o Partner Center pode reclamar de nome completo duplicado. Nesse caso: apagar as entradas antigas em Packages **e** subir o arquivo novo (versão incrementada) — nunca dois pacotes com versão/arquitetura iguais e conteúdo diferente
 - Arquitetura: **x64 autocontido** (não exige .NET na máquina do usuário); para cobrir ARM64 no futuro, gerar variante `-r win-arm64`
-- "What's new in this version" (limite 1500 caracteres) — texto pronto para a **1.0.15.0** (29/10/2026):
+- "What's new in this version" (limite 1500 caracteres) — texto pronto para a **1.0.16.0** (30/10/2026):
 
-  > Interface ajustada às bordas e à barra de status do Windows e do Android, com melhor aproveitamento da tela e do teclado. A importação em lote continua aceitando CSV, TSV, TXT, RAR e ZIP, e agora há também a opção "Importar da URL": você cola um link HTTPS de um arquivo .rar, .zip ou .csv e o app baixa e importa o conteúdo — nenhuma ficha é enviada. O banco continua cifrado no dispositivo (AES-GCM), sem conta, nuvem, anúncios ou analytics. Termos de uso e política de privacidade revisados (v1.1), com explicação clara sobre armazenamento local, internet opcional e direitos LGPD/GDPR. O código do app foi otimizado com R8 em modo completo, reduzindo o tamanho do pacote e melhorando o desempenho.
+  > Ícones unificados em todas as plataformas: o mesmo símbolo do Cadastro Clínico agora aparece no Android (ícone adaptativo/redondo), na Microsoft Store, no instalador Windows, na barra de título e na barra de tarefas. A janela do Windows usa o ícone do próprio executável, com barra de título moderna. O restante continua igual: interface adaptada às bordas e ao teclado, importação em lote (CSV, TSV, TXT, RAR e ZIP) e "Importar da URL", banco cifrado no dispositivo (AES-GCM), sem conta, nuvem, anúncios ou analytics. Termos de uso e política de privacidade revisados (v1.1). O código segue otimizado com R8 full mode.
 
 ### 3.5 Store listings (por idioma: pt-BR)
 - **Nome (obrigatório):** Cadastro Clínico
@@ -121,4 +121,4 @@ Ordem das telas (docs Microsoft, app MSIX): **Pricing and availability → Prope
 | 2 | 06/10/2026 | *"dois pacotes com o nome completo wavizo.CadastroClnico_1.0.7.0_Neutral_ ... conteúdos diferentes"* | Pacote antigo (mojibake) ainda no submission + novo upload com mesma versão e arquitetura `Neutral` | `ProcessorArchitecture="x64"` + bump de versão; apagar entradas antigas em Packages antes de subir o novo |
 | 3 | 06/10/2026 | *"não é permitido ... número de revisão diferente de zero ... especifica 1.0.7.1"* | Versão incrementada no 4º campo (revisão) — proibido pela Store | 4º campo = `0` sempre; incrementar o 3º campo: `1.0.8.0` |
 
-**Pacote atual:** `msix/dist/wavizo.CadastroClnico_1.0.15.0_x64.msix` (build 29/10/2026 — edge-to-edge/IME, "Importar da URL", termos v1.1, R8 full mode, política revisada; sem assinatura, a Store re-assina) — remover entradas antigas em *Packages* e enviar este.
+**Pacote atual:** `msix/dist/wavizo.CadastroClnico_1.0.16.0_x64.msix` (build 30/10/2026 — ícones unificados, barra de título com o ícone do app; sem assinatura, a Store re-assina) — remover entradas antigas em *Packages* e enviar este.

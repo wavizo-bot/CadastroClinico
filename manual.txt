@@ -1,7 +1,7 @@
 ================================================================================
 MANUAL DO PROJETO — "CADASTRO CLÍNICO"
 Pasta: raiz do repositório (CadastroClinico/)
-Gerado: 06/10/2026 | Atualizado: 29/10/2026 | Versão do app: 1.0.15 (Android versionCode 19 | MSIX 1.0.15.0)
+Gerado: 06/10/2026 | Atualizado: 30/10/2026 | Versão do app: 1.0.16 (Android versionCode 20 | MSIX 1.0.16.0)
 ================================================================================
 
 TL;DR
@@ -300,20 +300,21 @@ GOOGLE PLAY (Android):
     SHA-256 3F:BB:AD:00:28:F6:3A:FA:0E:C8:A1:76:E3:66:93:21:6E:A2:75:FD:50:
             26:35:BF:8F:F5:20:4B:C0:A5:C1:B9
   Última versão enviada ao Play: 1.0.10 (versionCode 9). Pacote atual:
-  1.0.15 (versionCode 19), pronto para envio; nunca reutilizar o 18 (queimado).
+  1.0.16 (versionCode 20), pronto para envio; o 1.0.15 (versionCode 19) foi
+  construído e testado, mas não enviado. Nunca reutilizar o 18 (queimado).
 
 MICROSOFT STORE (Windows):
 - Identidade: Name wavizo.CadastroClnico | Publisher CN=57BB464E-553F-45B6-A4ED-B253157408EB
   | PublisherDisplayName wavizo | PFN wavizo.CadastroClnico_c5p81jb0en0bm |
   Store ID 9P88RMK5TDSB | último publicado: 1.0.13.0; manifesto/build local
-  (msix/CadastroClinicoMSIX/Package.appxmanifest): 1.0.15.0 — pronto para envio
+  (msix/CadastroClinicoMSIX/Package.appxmanifest): 1.0.16.0 — pronto para envio
   (o Partner Center precisa de um novo upload; confirmar no painel).
 - Política de privacidade no Partner Center:
   https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
-- Pacotes: entregas/windows/wavizo.CadastroClnico_1.0.15.0_x64.msix é o mais
-  recente (1.0.8/1.0.9/1.0.10/1.0.13 em entregas/windows/historico/; UNSIGNED —
-  a Store re-assina; aceito) e entregas/play/app-release-vC19-1.0.15.aab é o AAB
-  pronto para envio.
+- Pacotes: entregas/windows/wavizo.CadastroClnico_1.0.16.0_x64.msix é o mais
+  recente (1.0.8/1.0.9/1.0.10/1.0.13/1.0.15 em entregas/windows/historico/;
+  UNSIGNED — a Store re-assina; aceito) e entregas/play/app-release-vC20-1.0.16.aab
+  é o AAB pronto para envio.
 - Guia de submissão completo com respostas prontas: msix/PARTNER_CENTER.md.
 - Screenshots desktop 1366x768 prontas em docs/img/ (WebP) e
   msix/listing/screenshots/ (PNG), com dados fictícios. A Faxina ficou fora da
@@ -358,7 +359,7 @@ log.txt                    HISTÓRICO COMPLETO de entregas (26/09 a 29/10/2026):
 todo.md                    Backlog (108 itens, quase todos [x]). CUIDADO: contém itens
                            com versão "1.20.x" (senha trimestral, bloqueio por 2 dias,
                            limpeza após 10 dias etc.) que NÃO batem com o package.json
-                           atual (1.0.15) — provavelmente pertencem ao app irmão
+                           atual (1.0.16) — provavelmente pertencem ao app irmão
                            Acompanha Digital. Confirmar antes de usar como escopo atual.
 ideas.md                   Direção visual "Saúde Pública Editorial": Azul Clínica
                            #123B67, fontes Outfit (títulos) + Source Sans 3 (textos),
@@ -390,35 +391,60 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
   da URL"), termos v1.1, política/termos/aviso revisados, landing + docs/app no
   GitHub Pages, screenshots reais com dados fictícios, purga do keystore/log/senha
   do histórico (git-filter-repo) e rotação da upload key. MSIX 1.0.15.0 gerado.
+1.0.16 (30/10): ícones unificados a partir de icon.png (Android adaptativo/redondo,
+  MSIX/Store, barra de título/tarefa, favicon, splash e apple-touch-icon); Android
+  versionCode 20 / MSIX 1.0.16.0; mark sem moldura no redondo/adaptativo.
 
 --------------------------------------------------------------------------------
-11. STATUS / PENDÊNCIAS (em 29/10/2026)
+11. STATUS / PENDÊNCIAS (em 30/10/2026)
 --------------------------------------------------------------------------------
-- AAB v19 (1.0.15) reconstruído após as correções de termos v1.1 e runtime:
-  versionCode 19, 7.057.194 bytes, assinatura BE:FA, R8 full mode,
-  proguard.map presente. Artefato final testado no Xiaomi 25069PTEBG (goya,
-  Android 16, 1280x2772): "adb install -r" manteve a assinatura BE:FA e os
-  dados; termos v1.1, home 1.0.15, edge-to-edge, busca "zzzz" sem resultado,
-  teclado/IME e "Importar da URL" com URL inválida OK, sem crash. Observações
-  não bloqueantes para a 1.0.16: erro de rede aparece como "Failed to fetch"
-  (inglês) e o CANCELAR do card exige rolagem. O teste completo de download
-  por URL não foi feito por falta de arquivo público permitido; UI e erro
-  foram validados.
-- MSIX 1.0.15.0: build/validação por msix/build.ps1; enviar ao Partner Center
-  (substituir o 1.0.13.0) e usar a URL da política
+- AAB v20 (1.0.16) construído com R8 full mode: versionCode 20 / versionName
+  1.0.16, 8.844.700 bytes, SHA-256
+  76BE599A814DB5E0D6C7B0898BD28CE90911C1633A0C2D1A293CFFD8A265F174,
+  assinatura BE:FA (upload). proguard.map presente; ícones do AAB
+  pixel-idênticos ao fonte; adaptive icon com fundo #F7F3EA. APK de teste
+  correspondente: 8.431.678 bytes, SHA-256
+  BF691006D3B16B5E21E5911BCAC9ED7C20C624873ED61F480D5E67ACDE0D93D1.
+- AAB v19 (1.0.15) anterior foi reconstruído e testado no Xiaomi 25069PTEBG
+  (goya, Android 16, 1280x2772): "adb install -r" manteve a assinatura BE:FA e
+  os dados; termos v1.1, home 1.0.15, edge-to-edge, busca "zzzz" sem resultado,
+  teclado/IME e "Importar da URL" com URL inválida OK, sem crash. Não foi
+  enviado; o v20 é o pacote atual. Observações herdadas: erro de rede aparece
+  como "Failed to fetch" (inglês) e o CANCELAR do card exige rolagem; o teste
+  completo de download por URL não foi feito por falta de arquivo público
+  permitido (UI e erro validados).
+- Teste físico do v20 PENDENTE. O aparelho conectado em 30/10 é o 2410CRP4CG
+  (uke, Android 16, 2136x3200) com o app da Play Store 1.0.7 / versionCode 8 e
+  assinatura d1ef9895; "adb install -r" falhou com
+  INSTALL_FAILED_UPDATE_INCOMPATIBLE (assinaturas diferentes) e os dados foram
+  preservados. O 25069PTEBG (goya, v19 BE:FA) não estava conectado. NÃO
+  desinstalar a versão da Play sem autorização do usuário.
+- MSIX 1.0.16.0: build/validação por msix/build.ps1; 81.324.110 bytes,
+  SHA-256 9C73F53084FB185E5C76D36AACE77A0112F73743417DE6571E4F1978ABB5113D,
+  sem assinatura (a Store re-assina). Cópia de teste assinada com certificado
+  local: 81.341.401 bytes, SHA-256
+  7D6DD7718B6CDB050FCC1A622080B8A640F8242133CCEC727136DD93BBB2BC10.
+  Teste local: executável e pacote instalado 1.0.16.0 (SignatureKind Developer)
+  abriram pelo Start; janela renderizou os termos, barra de título e tarefa
+  exibem o ícone novo. O pacote 1.0.13.0 da Store foi substituído nesta
+  máquina pela cópia de teste; os dados em %LOCALAPPDATA%\CadastroClinico
+  permaneceram (backup em Temp\opencode\cadclinico-backup-20261030).
+  Enviar o MSIX SEM assinatura ao Partner Center (substituir o 1.0.13.0) e usar
+  a URL da política
   https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
-  (Pages ativo em main/docs desde 29/10/2026; HTTP 200 verificado).
-- Landing + docs/app publicados no GitHub Pages (main/docs): conteúdo do commit
-  9d22ddd, HTTPS forçado; /, /app/, 3 docs legais, favicon, sitemap, robots e
-  imagens testados com HTTP 200.
-- Tag v1.0.15 publicada apontando para 9d22ddd (commit que gerou os pacotes);
-  os commits posteriores são apenas documentação/comentário.
-- Play Console: enviar o AAB v19 e rotacionar a upload key (ação do usuário;
-  o Google valida). Nunca reutilizar o versionCode 18. A página pública do app
-  ainda retorna 404 enquanto não houver publicação.
-- Git: main local/remoto atualizado e árvore limpa; tag v1.0.15 em 9d22ddd
-  (commit que gerou os pacotes). Histórico purgado (git-filter-repo); o repo
-  Windows (CadastroClinicoMSIX) não é mais a fonte da política.
+  (Pages ativo em main/docs; HTTP 200 verificado em 29/10/2026).
+- Landing + docs/app regenerados em 1.0.16 (base /CadastroClinico/app/,
+  favicon e apple-touch-icon). Publicar no GitHub Pages e conferir /, /app/,
+  os 3 docs legais, favicon, sitemap, robots e imagens com HTTP 200.
+- Tag v1.0.16: criar no commit que gerou os pacotes e publicar; a v1.0.15
+  continua em 9d22ddd. Commits posteriores de documentação não alteram os
+  binários.
+- Play Console: enviar o AAB v20 e rotacionar a upload key (ação do usuário;
+  o Google valida). Nunca reutilizar o versionCode 18 (queimado) nem o 19.
+  A página pública do app ainda retorna 404 enquanto não houver publicação.
+- Git: fontes/docs da 1.0.16 ainda não commitados nesta máquina; histórico
+  purgado (git-filter-repo); o repo Windows (CadastroClinicoMSIX) não é mais
+  a fonte da política.
 
 FIM DO MANUAL — para detalhes de implementação, consulte log.txt e os próprios
 fontes (client/src/lib/* são pequenos e bem comentados em PT-BR).

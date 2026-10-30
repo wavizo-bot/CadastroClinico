@@ -6,6 +6,8 @@
 dist/
 build/
 *.dist
+__pycache__/
+*.pyc
 
 # Environment variables
 .env

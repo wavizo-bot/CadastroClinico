@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.WinForms;
@@ -18,6 +19,22 @@ namespace CadastroClinicoMSIX
         public MainForm()
         {
             this.Text = "Cadastro Clínico";
+            // Usa o mesmo ICO embutido no executavel (ApplicationIcon) tambem na
+            // barra de titulo e na barra de tarefas. Sem isso, o WinForms mostra
+            // o icone generico da classe Form.
+            try
+            {
+                var executavel = Environment.ProcessPath ?? Application.ExecutablePath;
+                if (!string.IsNullOrWhiteSpace(executavel))
+                {
+                    var icone = Icon.ExtractAssociatedIcon(executavel);
+                    if (icone != null) this.Icon = icone;
+                }
+            }
+            catch
+            {
+                // Mantem o icone padrao se o recurso nao estiver disponivel.
+            }
             this.Width = 1280;
             this.Height = 800;
             this.StartPosition = FormStartPosition.CenterScreen;

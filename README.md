@@ -9,7 +9,7 @@ para servidor**.
 
 *Captura real do aplicativo com dados fictícios. Nenhum dado de paciente real foi usado.*
 
-**Versão atual: 1.0.15** (Android `versionCode 19` · Windows `1.0.15.0`)
+**Versão atual: 1.0.16** (Android `versionCode 20` · Windows `1.0.16.0`)
 
 ---
 
@@ -174,4 +174,4 @@ WhatsApp links open the external app. It is an independent tool — not an offic
 system, medical record or medical device — and it does not replace the judgement of a qualified
 professional. Available for Android, Windows and the web, with manual JSON export for backup.
 
-Version 1.0.15. Contact: mmr05@hotmail.com · +55 11 97883-1938.
+Version 1.0.16. Contact: mmr05@hotmail.com · +55 11 97883-1938.

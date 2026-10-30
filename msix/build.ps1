@@ -36,8 +36,16 @@ Get-ChildItem $layout -Recurse -Filter *.pdb | Remove-Item -Force
 
 $manifestRefs = @("StoreLogo.png","Square44x44Logo.png","Square150x150Logo.png","Wide310x150Logo.png","SplashScreen.png")
 New-Item -ItemType Directory -Path (Join-Path $layout "Assets") -Force | Out-Null
+# Copia o logo base e as variantes .scale-125/150/200/400 para telas de alta
+# densidade. O manifesto referencia o nome base; o Windows escolhe a variante.
+$assetPatterns = @("StoreLogo*.png","Square44x44Logo*.png","Square150x150Logo*.png","Wide310x150Logo*.png","SplashScreen*.png","app-icon.ico")
+foreach ($pattern in $assetPatterns) {
+    Get-ChildItem -Path (Join-Path $assets $pattern) -File | ForEach-Object {
+        Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $layout "Assets\$($_.Name)") -Force
+    }
+}
 foreach ($f in $manifestRefs) {
-    Copy-Item -LiteralPath (Join-Path $assets $f) -Destination (Join-Path $layout "Assets\$f") -Force
+    if (-not (Test-Path (Join-Path $layout "Assets\$f"))) { throw "Asset ausente no layout: $f" }
 }
 
 # AppxManifest.xml: mesmo manifesto do projeto, com o token do executavel resolvido
