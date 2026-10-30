@@ -418,7 +418,10 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
   assinatura d1ef9895; "adb install -r" falhou com
   INSTALL_FAILED_UPDATE_INCOMPATIBLE (assinaturas diferentes) e os dados foram
   preservados. O 25069PTEBG (goya, v19 BE:FA) não estava conectado. NÃO
-  desinstalar a versão da Play sem autorização do usuário.
+  desinstalar a versão da Play sem autorização do usuário. O AVD caderno_phone
+  também não iniciou ("x86_64 emulation currently requires hardware
+  acceleration"; driver de hipervisor ausente), então não substitui o teste
+  físico.
 - MSIX 1.0.16.0: build/validação por msix/build.ps1; 81.324.110 bytes,
   SHA-256 9C73F53084FB185E5C76D36AACE77A0112F73743417DE6571E4F1978ABB5113D,
   sem assinatura (a Store re-assina). Cópia de teste assinada com certificado
@@ -432,19 +435,21 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
   Enviar o MSIX SEM assinatura ao Partner Center (substituir o 1.0.13.0) e usar
   a URL da política
   https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
-  (Pages ativo em main/docs; HTTP 200 verificado em 29/10/2026).
-- Landing + docs/app regenerados em 1.0.16 (base /CadastroClinico/app/,
-  favicon e apple-touch-icon). Publicar no GitHub Pages e conferir /, /app/,
-  os 3 docs legais, favicon, sitemap, robots e imagens com HTTP 200.
-- Tag v1.0.16: criar no commit que gerou os pacotes e publicar; a v1.0.15
-  continua em 9d22ddd. Commits posteriores de documentação não alteram os
-  binários.
+  (Pages ativo em main/docs; HTTP 200 verificado em 30/10/2026).
+- Landing + docs/app publicados em 1.0.16 (base /CadastroClinico/app/,
+  favicon e apple-touch-icon). Em 30/10/2026 o Pages público respondeu HTTP
+  200 em /, /app/, termos, privacidade, aviso legal, favicon (187.906 bytes),
+  apple-touch-icon (46.566 bytes), sitemap e robots; a landing exibiu 1.0.16 e
+  o app abriu "Versão 1.0.16 sem dados importados" com o modal de termos v1.1.
+- Tag v1.0.16 criada e publicada em 3e8409b (commit que gerou os pacotes); a
+  v1.0.15 continua em 9d22ddd. Commits posteriores de documentação não alteram
+  os binários.
 - Play Console: enviar o AAB v20 e rotacionar a upload key (ação do usuário;
   o Google valida). Nunca reutilizar o versionCode 18 (queimado) nem o 19.
   A página pública do app ainda retorna 404 enquanto não houver publicação.
-- Git: fontes/docs da 1.0.16 ainda não commitados nesta máquina; histórico
-  purgado (git-filter-repo); o repo Windows (CadastroClinicoMSIX) não é mais
-  a fonte da política.
+- Git: main remoto contém 3e8409b (build) e a tag v1.0.16; commits posteriores
+  são apenas documentação. Histórico purgado (git-filter-repo); o repo Windows
+  (CadastroClinicoMSIX) não é mais a fonte da política.
 
 FIM DO MANUAL — para detalhes de implementação, consulte log.txt e os próprios
 fontes (client/src/lib/* são pequenos e bem comentados em PT-BR).
