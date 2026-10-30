@@ -444,9 +444,10 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
 - Tag v1.0.16 criada e publicada em 3e8409b (commit que gerou os pacotes); a
   v1.0.15 continua em 9d22ddd. Commits posteriores de documentação não alteram
   os binários.
-- Play Console: enviar o AAB v20 e rotacionar a upload key (ação do usuário;
-  o Google valida). Nunca reutilizar o versionCode 18 (queimado) nem o 19.
-  A página pública do app ainda retorna 404 enquanto não houver publicação.
+- Play Console: a página pública já está no ar (app 1.0.7, atualizado em
+  26/10/2026, 10+ downloads), mas ainda serve a versão antiga; enviar o AAB v20
+  e rotacionar a upload key (ação do usuário; o Google valida). Nunca
+  reutilizar o versionCode 18 (queimado) nem o 19.
 - Git: main remoto contém 3e8409b (build) e a tag v1.0.16; commits posteriores
   são apenas documentação. Histórico purgado (git-filter-repo); o repo Windows
   (CadastroClinicoMSIX) não é mais a fonte da política.

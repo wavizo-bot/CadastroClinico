@@ -147,12 +147,13 @@ entregas/               Artefatos locais de entrega (ignorado pelo git)
 - **Landing:** https://wavizo-bot.github.io/CadastroClinico/
 - **Versão web:** https://wavizo-bot.github.io/CadastroClinico/app/
 - **Microsoft Store:** https://apps.microsoft.com/detail/9P88RMK5TDSB
+- **Google Play:** https://play.google.com/store/apps/details?id=com.cadclinico.app
+  (versão pública 1.0.7; AAB v20/1.0.16 preparado para envio)
 - **Política de Privacidade:** https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
 - **Termos de Serviço:** https://wavizo-bot.github.io/CadastroClinico/termos-de-servico.html
 - **Aviso Legal:** https://wavizo-bot.github.io/CadastroClinico/aviso-legal.html
 - **Repositório:** https://github.com/wavizo-bot/CadastroClinico
-- **Android:** pacote AAB v19 preparado para o Google Play; a URL pública será adicionada
-  quando a publicação for aprovada.
+- **Android:** https://play.google.com/store/apps/details?id=com.cadclinico.app
 
 ## Contato
 
