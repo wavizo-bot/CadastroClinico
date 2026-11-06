@@ -1,7 +1,7 @@
 ================================================================================
 MANUAL DO PROJETO — "CADASTRO CLÍNICO"
 Pasta: raiz do repositório (CadastroClinico/)
-Gerado: 06/10/2026 | Atualizado: 30/10/2026 | Versão do app: 1.0.16 (Android versionCode 20 | MSIX 1.0.16.0)
+Gerado: 06/10/2026 | Atualizado: 05/11/2026 | Versão do app: 1.0.17 (Android versionCode 21 | MSIX 1.0.17.0)
 ================================================================================
 
 TL;DR
@@ -136,10 +136,16 @@ BUSCA DE PACIENTES (Home.tsx + patientSearch.ts):
   mãe e exige >= 4 chars no termo; consulta numérica < 4 dígitos busca SÓ cadastro;
   >= 4 dígitos busca cadastro, CPF, CNS e telefone; "texto número" = endereço com
   número exato; prefixo de logradouro (rua/av/estrada/travessa) é ignorado na busca.
-- Ordem: 1º exato; só se não achar, cai no difuso (Fuse: keys name x3, mother x2,
+- Nome: ranker por tokens (buscaRanqueada) — normaliza, remove conectores, trata
+  Júnior/Filho/Neto/Sobrinho como sufixo, exige cobertura dos tokens, pontua
+  primeiro/último nome, prefixo e erro de digitação limitado; desempate estável
+  (score, nome completo, menos tokens extras, alfabético pt-BR, id). O Fuse fica
+  só como fallback do nome (limite 10).
+- Mãe/endereço: exato quando possível; senão Fuse (keys name x3, mother x2,
   address x1; threshold 0.4; minMatchCharLength 3; ignoreLocation; limite 40,
   dedup por id). Índice criado em lazy e resetado quando a lista muda.
-- Resultados ordenados alfabeticamente; paginação de 5 pacientes / 10 trechos.
+- Resultados de nome ordenados por relevância; empates alfabéticos. Paginação de
+  5 pacientes / 10 trechos.
 - Acentos são normalizados (NFD + strip) em tudo, inclusive no OCR.
 
 TERRITÓRIO (territoryRules.ts):
@@ -300,20 +306,21 @@ GOOGLE PLAY (Android):
     SHA-256 3F:BB:AD:00:28:F6:3A:FA:0E:C8:A1:76:E3:66:93:21:6E:A2:75:FD:50:
             26:35:BF:8F:F5:20:4B:C0:A5:C1:B9
   Última versão enviada ao Play: 1.0.10 (versionCode 9). Pacote atual:
-  1.0.16 (versionCode 20), pronto para envio; o 1.0.15 (versionCode 19) foi
-  construído e testado, mas não enviado. Nunca reutilizar o 18 (queimado).
+  1.0.17 (versionCode 21), pronto para envio; o 1.0.16 (versionCode 20) foi
+  construído, testado e tagueado, mas não enviado. Nunca reutilizar o 18
+  (queimado) nem o 19.
 
 MICROSOFT STORE (Windows):
 - Identidade: Name wavizo.CadastroClnico | Publisher CN=57BB464E-553F-45B6-A4ED-B253157408EB
   | PublisherDisplayName wavizo | PFN wavizo.CadastroClnico_c5p81jb0en0bm |
   Store ID 9P88RMK5TDSB | último publicado: 1.0.13.0; manifesto/build local
-  (msix/CadastroClinicoMSIX/Package.appxmanifest): 1.0.16.0 — pronto para envio
+  (msix/CadastroClinicoMSIX/Package.appxmanifest): 1.0.17.0 — pronto para envio
   (o Partner Center precisa de um novo upload; confirmar no painel).
 - Política de privacidade no Partner Center:
   https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
-- Pacotes: entregas/windows/wavizo.CadastroClnico_1.0.16.0_x64.msix é o mais
-  recente (1.0.8/1.0.9/1.0.10/1.0.13/1.0.15 em entregas/windows/historico/;
-  UNSIGNED — a Store re-assina; aceito) e entregas/play/app-release-vC20-1.0.16.aab
+- Pacotes: entregas/windows/wavizo.CadastroClnico_1.0.17.0_x64.msix é o mais
+  recente (1.0.8/1.0.9/1.0.10/1.0.13/1.0.15/1.0.16 em entregas/windows/historico/;
+  UNSIGNED — a Store re-assina; aceito) e entregas/play/app-release-vC21-1.0.17.aab
   é o AAB pronto para envio.
 - Guia de submissão completo com respostas prontas: msix/PARTNER_CENTER.md.
 - Screenshots desktop 1366x768 prontas em docs/img/ (WebP) e
@@ -394,63 +401,65 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
 1.0.16 (30/10): ícones unificados a partir de icon.png (Android adaptativo/redondo,
   MSIX/Store, barra de título/tarefa, favicon, splash e apple-touch-icon); Android
   versionCode 20 / MSIX 1.0.16.0; mark sem moldura no redondo/adaptativo.
+1.0.17 (05/11): busca de nomes por ranker de tokens (primeiro/último nome,
+  cobertura de tokens, prefixo, erro de digitação e sufixos Júnior/Filho/Neto/
+  Sobrinho); Fuse mantido só para mãe/endereço e fallback do nome. Android
+  versionCode 21 / MSIX 1.0.17.0; testes sintéticos cobrem nome do meio,
+  "Marcello", ordem invertida e nome com sufixo.
 
 --------------------------------------------------------------------------------
-11. STATUS / PENDÊNCIAS (em 30/10/2026)
+11. STATUS / PENDÊNCIAS (em 05/11/2026)
 --------------------------------------------------------------------------------
-- AAB v20 (1.0.16) construído com R8 full mode: versionCode 20 / versionName
-  1.0.16, 8.844.700 bytes, SHA-256
+- 1.0.17 (05/11): busca de nomes por ranker de tokens em patientSearch.ts
+  (primeiro/último nome, cobertura de tokens, prefixo, erro de digitação e
+  sufixos Júnior/Filho/Neto/Sobrinho); Fuse mantido para mãe/endereço e como
+  fallback do nome (limite 10). `pnpm check` OK e 62 testes Vitest verdes
+  (17 em patientSearch.test.ts). Benchmark sintético de 30 mil nomes:
+  índice ~104 ms e busca ~67 ms.
+- AAB v21 (1.0.17) construído com R8 full mode: versionCode 21 / versionName
+  1.0.17, 8.846.340 bytes, SHA-256
+  EBDCE25F2E5464FE8CBA03F80E11EB7E7F43BF3EE8EC7AB8ACEA48F440F7FFB7,
+  assinatura BE:FA (upload). r8.json: isOptimizationsEnabled=true e
+  isProGuardCompatibilityModeEnabled=false; proguard.map presente (5.434.851
+  bytes). APK v21: 8.433.334 bytes, SHA-256
+  6B5C331F667BC2D5E6D38DE686E441F7B5DD2DBC72F9B1AA56144AA93066FC1F.
+- AAB v20 (1.0.16) anterior: versionCode 20 / versionName 1.0.16, 8.844.700
+  bytes, SHA-256
   76BE599A814DB5E0D6C7B0898BD28CE90911C1633A0C2D1A293CFFD8A265F174,
-  assinatura BE:FA (upload). proguard.map presente; ícones do AAB
-  pixel-idênticos ao fonte; adaptive icon com fundo #F7F3EA. APK de teste
-  correspondente: 8.431.678 bytes, SHA-256
-  BF691006D3B16B5E21E5911BCAC9ED7C20C624873ED61F480D5E67ACDE0D93D1.
-- AAB v19 (1.0.15) anterior foi reconstruído e testado no Xiaomi 25069PTEBG
-  (goya, Android 16, 1280x2772): "adb install -r" manteve a assinatura BE:FA e
-  os dados; termos v1.1, home 1.0.15, edge-to-edge, busca "zzzz" sem resultado,
-  teclado/IME e "Importar da URL" com URL inválida OK, sem crash. Não foi
-  enviado; o v20 é o pacote atual. Observações herdadas: erro de rede aparece
-  como "Failed to fetch" (inglês) e o CANCELAR do card exige rolagem; o teste
-  completo de download por URL não foi feito por falta de arquivo público
-  permitido (UI e erro validados).
-- Teste físico do v20 PENDENTE. O aparelho conectado em 30/10 é o 2410CRP4CG
-  (uke, Android 16, 2136x3200) com o app da Play Store 1.0.7 / versionCode 8 e
-  assinatura d1ef9895; "adb install -r" falhou com
-  INSTALL_FAILED_UPDATE_INCOMPATIBLE (assinaturas diferentes) e os dados foram
-  preservados. O 25069PTEBG (goya, v19 BE:FA) não estava conectado. NÃO
+  assinatura BE:FA; tag v1.0.16 em 3e8409b. Não foi enviado. O v20 foi
+  construído/testado localmente; o v19 foi testado no Xiaomi 25069PTEBG
+  (goya, Android 16) com dados preservados.
+- Teste físico do v21 PENDENTE. O 25069PTEBG (goya, v19 BE:FA) não estava
+  conectado. O 2410CRP4CG (uke, Android 16) tem o app da Play 1.0.7 /
+  versionCode 8 e assinatura d1ef9895; "adb install -r" falha com
+  INSTALL_FAILED_UPDATE_INCOMPATIBLE e os dados devem ser preservados. NÃO
   desinstalar a versão da Play sem autorização do usuário. O AVD caderno_phone
-  também não iniciou ("x86_64 emulation currently requires hardware
-  acceleration"; driver de hipervisor ausente), então não substitui o teste
-  físico.
-- MSIX 1.0.16.0: build/validação por msix/build.ps1; 81.324.110 bytes,
-  SHA-256 9C73F53084FB185E5C76D36AACE77A0112F73743417DE6571E4F1978ABB5113D,
-  sem assinatura (a Store re-assina). Cópia de teste assinada com certificado
-  local: 81.341.401 bytes, SHA-256
-  7D6DD7718B6CDB050FCC1A622080B8A640F8242133CCEC727136DD93BBB2BC10.
-  Teste local: executável e pacote instalado 1.0.16.0 (SignatureKind Developer)
-  abriram pelo Start; janela renderizou os termos, barra de título e tarefa
-  exibem o ícone novo. O pacote 1.0.13.0 da Store foi substituído nesta
-  máquina pela cópia de teste; os dados em %LOCALAPPDATA%\CadastroClinico
-  permaneceram (backup em Temp\opencode\cadclinico-backup-20261030).
-  Enviar o MSIX SEM assinatura ao Partner Center (substituir o 1.0.13.0) e usar
-  a URL da política
-  https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
-  (Pages ativo em main/docs; HTTP 200 verificado em 30/10/2026).
-- Landing + docs/app publicados em 1.0.16 (base /CadastroClinico/app/,
-  favicon e apple-touch-icon). Em 30/10/2026 o Pages público respondeu HTTP
-  200 em /, /app/, termos, privacidade, aviso legal, favicon (187.906 bytes),
-  apple-touch-icon (46.566 bytes), sitemap e robots; a landing exibiu 1.0.16 e
-  o app abriu "Versão 1.0.16 sem dados importados" com o modal de termos v1.1.
-- Tag v1.0.16 criada e publicada em 3e8409b (commit que gerou os pacotes); a
-  v1.0.15 continua em 9d22ddd. Commits posteriores de documentação não alteram
-  os binários.
-- Play Console: a página pública já está no ar (app 1.0.7, atualizado em
-  26/10/2026, 10+ downloads), mas ainda serve a versão antiga; enviar o AAB v20
-  e rotacionar a upload key (ação do usuário; o Google valida). Nunca
-  reutilizar o versionCode 18 (queimado) nem o 19.
-- Git: main remoto contém 3e8409b (build) e a tag v1.0.16; commits posteriores
-  são apenas documentação. Histórico purgado (git-filter-repo); o repo Windows
-  (CadastroClinicoMSIX) não é mais a fonte da política.
+  também não inicia ("x86_64 emulation currently requires hardware
+  acceleration"; driver de hipervisor ausente).
+- MSIX 1.0.17.0: build/validação por msix/build.ps1; 81.328.258 bytes,
+  SHA-256 B9089D0B045468271CD6B23E2877891A20485528375DA8B73ED7264E4BD58F80,
+  sem assinatura (a Store re-assina). Cópia de teste assinada com o certificado
+  local CN=57BB464E-553F-45B6-A4ED-B253157408EB (thumbprint
+  93F250E24074A804684F9E390D36DBB662DF27AF): 81.345.440 bytes, SHA-256
+  463A70768EEC02EDF198BFDC6E2901EB74D2406CCD802ABD76DF880DE3894EB8,
+  assinatura Valid. A cópia de teste ainda NÃO foi instalada nesta rodada; o
+  pacote 1.0.16.0 Developer segue instalado e os dados permanecem.
+- Landing + docs/app regenerados em 1.0.17 (base /CadastroClinico/app/): o
+  `docs/index.html` exibe 1.0.17 e o `docs/app` foi construído com os novos
+  bundles. A publicação no Pages depende do push; até lá o público continua
+  em 1.0.16.
+- Play Console: página pública no ar com 1.0.7 (versionCode 8, atualizada em
+  26/10/2026); enviar o AAB v21 e rotacionar a upload key (ação do usuário).
+  Nunca reutilizar os versionCodes 18, 19 ou 20.
+- Microsoft Store: enviar o MSIX 1.0.17.0 sem assinatura ao Partner Center,
+  removendo a entrada antiga 1.0.13.0 em Packages. Guia:
+  msix/PARTNER_CENTER.md.
+- Entregas locais: entregas/play/app-release-vC21-1.0.17.aab,
+  entregas/play/app-release-vC21-1.0.17.apk e
+  entregas/windows/wavizo.CadastroClnico_1.0.17.0_x64.msix; a 1.0.16 foi
+  movida para os respectivos historico/.
+- Git: a busca, o versionamento e esta documentação entram no commit da
+  v1.0.17; a tag v1.0.17 aponta para esse commit e é publicada junto com ele.
 
 FIM DO MANUAL — para detalhes de implementação, consulte log.txt e os próprios
 fontes (client/src/lib/* são pequenos e bem comentados em PT-BR).

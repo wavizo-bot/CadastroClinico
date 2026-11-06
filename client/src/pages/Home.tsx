@@ -11,7 +11,7 @@ import { extractRarFiles, rarErrorMessage } from "@/lib/rarImport";
 import { extractZipFiles, zipErrorMessage } from "@/lib/zipImport";
 import { buscarPorOcr, extrairCamposOcr, precarregarOcr, reconhecerImagem, type OcrCampos, type OcrMatch } from "@/lib/ocr";
 import { ehVarjao, VARJAO_ROTULO } from "@/lib/territoryRules";
-import { buscaDifusa, criarIndicePacientes, type IndicePacientes } from "@/lib/patientSearch";
+import { buscaDifusa, buscaRanqueada, criarIndicePacientes, type IndicePacientes } from "@/lib/patientSearch";
 import { executarFaxinaComProgresso, FAXINA_GRUPOS, ROTULO_SEVERIDADE, type FaxinaProgresso, type FaxinaResultado } from "@/lib/faxina";
 import pacote from "../../../package.json";
 
@@ -22,6 +22,7 @@ const APP_VERSION = String(pacote.version ?? "0.0.0");
 const PATIENT_PAGE_SIZE = 5;
 const TERRITORY_PAGE_SIZE = 10;
 const RESULTADO_DIFUSO = 40;
+const RESULTADO_FALLBACK_NOME = 10;
 type View = "home" | "patients" | "patient-detail" | "territory" | "address-detail" | "operations" | "database" | "optical" | "faxina";
 const LOGRADOURO_PREFIX = /^\s*(?:rua|avenida|av\.?|estrada|travessa)\s+/i;
 
@@ -514,7 +515,6 @@ export default function Home() {
     const termo = patientSearchTerm(debouncedQuery);
     const normalized = normalizeSearch(termo);
     const ordem = (primeiro: ClinicData["patients"][number], segundo: ClinicData["patients"][number]) => primeiro.name.localeCompare(segundo.name, "pt-BR");
-    const byName = (patient: ClinicData["patients"][number]) => normalizeSearch(patient.name).includes(normalized);
     if (numeric) {
       return data.patients.filter((patient) => {
         const registrationMatches = String(patient.registration ?? "").replace(/\D/g, "").includes(numeric);
@@ -542,9 +542,9 @@ export default function Home() {
       if (exatos.length) return exatos;
       return buscaDifusa(indicePacientes(), addressQuery(debouncedQuery)?.text ?? termo, "address", RESULTADO_DIFUSO);
     }
-    const exatos = data.patients.filter(byName).sort(ordem);
-    if (exatos.length) return exatos;
-    return buscaDifusa(indicePacientes(), termo, "name", RESULTADO_DIFUSO);
+    const ranqueados = buscaRanqueada(indicePacientes(), termo, RESULTADO_DIFUSO);
+    if (ranqueados.length) return ranqueados;
+    return buscaDifusa(indicePacientes(), termo, "name", RESULTADO_FALLBACK_NOME);
   }, [data.patients, debouncedQuery]);
   const territoryResults = useMemo(() => data.territory.filter((entry) => territoryMatches(entry, streetQuery)), [data.territory, streetQuery]);
   const operationItems = useMemo(() => [...data.unitOperation].sort((a, b) => a.title.localeCompare(b.title, "pt-BR")), [data.unitOperation]);
