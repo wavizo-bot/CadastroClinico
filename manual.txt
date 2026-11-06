@@ -366,7 +366,7 @@ log.txt                    HISTÓRICO COMPLETO de entregas (26/09 a 29/10/2026):
 todo.md                    Backlog (108 itens, quase todos [x]). CUIDADO: contém itens
                            com versão "1.20.x" (senha trimestral, bloqueio por 2 dias,
                            limpeza após 10 dias etc.) que NÃO batem com o package.json
-                           atual (1.0.16) — provavelmente pertencem ao app irmão
+                           atual (1.0.17) — provavelmente pertencem ao app irmão
                            Acompanha Digital. Confirmar antes de usar como escopo atual.
 ideas.md                   Direção visual "Saúde Pública Editorial": Azul Clínica
                            #123B67, fontes Outfit (títulos) + Source Sans 3 (textos),
@@ -446,8 +446,8 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
   pacote 1.0.16.0 Developer segue instalado e os dados permanecem.
 - Landing + docs/app regenerados em 1.0.17 (base /CadastroClinico/app/): o
   `docs/index.html` exibe 1.0.17 e o `docs/app` foi construído com os novos
-  bundles. A publicação no Pages depende do push; até lá o público continua
-  em 1.0.16.
+  bundles. Publicado no Pages e verificado após o push: /app/ carrega
+  index-DLMCk0Yf.js e exibe "Versão 1.0.17".
 - Play Console: página pública no ar com 1.0.7 (versionCode 8, atualizada em
   26/10/2026); enviar o AAB v21 e rotacionar a upload key (ação do usuário).
   Nunca reutilizar os versionCodes 18, 19 ou 20.
@@ -458,8 +458,8 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
   entregas/play/app-release-vC21-1.0.17.apk e
   entregas/windows/wavizo.CadastroClnico_1.0.17.0_x64.msix; a 1.0.16 foi
   movida para os respectivos historico/.
-- Git: a busca, o versionamento e esta documentação entram no commit da
-  v1.0.17; a tag v1.0.17 aponta para esse commit e é publicada junto com ele.
+- Git: commit 8a810fb com a busca, o versionamento e a documentação; tag
+  v1.0.17 publicada no origin e apontando para o commit que gerou os pacotes.
 
 FIM DO MANUAL — para detalhes de implementação, consulte log.txt e os próprios
 fontes (client/src/lib/* são pequenos e bem comentados em PT-BR).
