@@ -442,8 +442,9 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
   local CN=57BB464E-553F-45B6-A4ED-B253157408EB (thumbprint
   93F250E24074A804684F9E390D36DBB662DF27AF): 81.345.440 bytes, SHA-256
   463A70768EEC02EDF198BFDC6E2901EB74D2406CCD802ABD76DF880DE3894EB8,
-  assinatura Valid. A cópia de teste ainda NÃO foi instalada nesta rodada; o
-  pacote 1.0.16.0 Developer segue instalado e os dados permanecem.
+  assinatura Valid. A cópia de teste foi instalada por cima da 1.0.16.0
+  Developer em 05/11/2026; o app abriu como 1.0.17 e os dados existentes
+  foram preservados.
 - Landing + docs/app regenerados em 1.0.17 (base /CadastroClinico/app/): o
   `docs/index.html` exibe 1.0.17 e o `docs/app` foi construído com os novos
   bundles. Publicado no Pages e verificado após o push: /app/ carrega

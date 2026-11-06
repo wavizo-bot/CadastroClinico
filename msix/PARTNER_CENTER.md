@@ -97,7 +97,7 @@ Ordem das telas (docs Microsoft, app MSIX): **Pricing and availability → Prope
 
 | # | Pendência | Status |
 |---|---|---|
-| 1 | ~~Instalar .NET 8 SDK e rodar `.\msix\build.ps1`~~ | **CONCLUÍDO** — pacote gerado e validado: `msix/dist/wavizo.CadastroClnico_1.0.17.0_x64.msix` (81,3 MB, 05/11/2026); identidade/versão x64 e conteúdo web conferidos. Falta o smoke test visual da 1.0.17.0 instalada (a cópia test-signed ainda não foi instalada) |
+| 1 | ~~Instalar .NET 8 SDK e rodar `.\msix\build.ps1`~~ | **CONCLUÍDO** — pacote gerado e validado: `msix/dist/wavizo.CadastroClnico_1.0.17.0_x64.msix` (81,3 MB, 05/11/2026); identidade/versão x64 e conteúdo web conferidos. Smoke test visual OK: cópia test-signed instalada por cima da 1.0.16.0 Developer; o app abriu como 1.0.17 com os dados existentes preservados |
 | 2 | Capturar screenshots desktop (1366×768+, até 10) do app compilado | **CONCLUÍDO (capturas reais)** — `docs/img/` (WebP) e `msix/listing/screenshots/` (PNG 1366×768) com dados fictícios; subir as 6 principais no Partner Center |
 | 3 | ~~Publicar `politica-privacidade.html` em URL HTTPS~~ | **CONCLUÍDO (29/10/2026)** — Pages ativo em `main` / `docs` (build `9d22ddd`, HTTPS forçado); URL testada com HTTP 200: https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html |
 | 4 | Confirmar/obter o rating IARC (reaproveitar ID da Play) | Pendente (conta Partner Center) |
