@@ -1,4 +1,4 @@
-// Importação da base do BI — MODELO ATUAL do sistema oficial (cabecalhos de 10/2026):
+// Importação da base do BI — MODELO ATUAL do sistema oficial (cabecalhos de 11/2026):
 // s1 "Cadastro - Analise detalhada", s2 "Informacoes questionario auto referido",
 // s3 "Cadastros detalhados", s4 "Usuario saude - Analise detalhada" + equipes.csv,
 // reconhecidos pelo conteudo do cabecalho e unidos cruzando CNS/CPF/nome+nascimento.
@@ -118,7 +118,7 @@ const HEADER_WORDS = ["nome","nome completo","nome do morador","data de nascimen
 function ehCabecalho(value: string) { return HEADER_WORDS.includes(norm(value)) || ["sexo","cns","cpf","mãe","mae","endereço","endereco","número","numero","unidade","idade"].includes(norm(value)); }
 
 const ASSINATURAS: Record<BiReportType, string[]> = {
-  s1: ["estabelecimento","profissional responsavel","numero imovel","tipo logradouro","logradouro","bairro","origem do cadastro"],
+  s1: ["estabelecimento","profissional responsavel","numero imovel","tipo logradouro","logradouro","bairro","origem do cadastro","cpf","nº cidadao"],
   s2: ["usuario saude nome","data nascimento","doenca cardiaca","esta domiciliado","esta acamado","esta gestante","usa alcool","usa drogas","fumante","hipertensao","diabetes","cancer","hanseniase","tuberculose","usa planta medicinal"],
   s3: ["cidadao nome","cidadao dn","cartao cidadao","nome do pai","pais de nascimento","equipe nome","tel. residencial","tel. celular","tel. recado","codigo ine"],
   s4: ["situacao de rua","raca/cor","tempo em situacao de rua","orientacao sexual","resp. familiar cns","doenca cardiaca","doenca respiratoria"],
@@ -154,18 +154,22 @@ export function detectBiReport(fileName: string, rows: string[][]): BiReportType
 
 const PINOS: Record<BiReportType, Record<string, { alias: string[]; letra: string }>> = {
   s1: {
-    // MODELO ATUAL (10/2026): ESTABELECIMENTO/INE/PROFISSIONAL/DATAS na frente;
-    // identificacao em H=CNS, I=NOME, J=DN, L=SEXO e cadastro/endereco a partir de M.
-    nome: { alias: ["nome"], letra: "I" },
-    nascimento: { alias: ["dn"], letra: "J" },
-    mae: { alias: ["nome da mae"], letra: "M" },
-    tipoLogr: { alias: ["tipo logradouro"], letra: "O" },
-    logradouro: { alias: ["logradouro"], letra: "P" },
-    numero: { alias: ["numero imovel"], letra: "Q" },
-    complemento: { alias: ["complemento"], letra: "R" },
-    bairro: { alias: ["bairro"], letra: "S" },
-    cns: { alias: ["cns"], letra: "H" },
-    sexo: { alias: ["sexo"], letra: "L" },
+    // MODELO ATUAL (11/2026): CPF e Nº CIDADÃO foram incluídos em H/J e
+    // deslocaram a identificação para I=CNS, K=NOME, L=DN, N=SEXO e o
+    // endereço para Q=TIPO, R=LOGRADOURO, S=NÚMERO, T=COMPLEMENTO, U=BAIRRO.
+    // Aliases são a fonte principal; as letras abaixo são apenas fallback.
+    nome: { alias: ["nome"], letra: "K" },
+    nascimento: { alias: ["dn","data nascimento"], letra: "L" },
+    mae: { alias: ["nome da mae"], letra: "O" },
+    tipoLogr: { alias: ["tipo logradouro"], letra: "Q" },
+    logradouro: { alias: ["logradouro"], letra: "R" },
+    numero: { alias: ["numero imovel","nº imovel","n° imovel","n. imovel","num imovel"], letra: "S" },
+    complemento: { alias: ["complemento"], letra: "T" },
+    bairro: { alias: ["bairro"], letra: "U" },
+    cns: { alias: ["cns"], letra: "I" },
+    sexo: { alias: ["sexo"], letra: "N" },
+    cpf: { alias: ["cpf"], letra: "H" },
+    cadastro: { alias: ["nº cidadao","n° cidadao","n. cidadao","numero cidadao","num cidadao","cartao cidadao"], letra: "J" },
   },
   s2: {
     nome: { alias: ["usuario saude nome"], letra: "A" },
@@ -300,6 +304,8 @@ export function mapBiRows(type: BiReportType, rows: string[][]): BiRecord[] {
       record.logradouro = clean(caixaTitulo(stripTipoLogradouro(logr)));
       record.numero = clean(colI(row, resolver.idx("numero")));
       guardaCns();
+      record.cpf = cleanDigits(colI(row, resolver.idx("cpf")));
+      record.cadastro = cleanDigits(colI(row, resolver.idx("cadastro")));
       record.sexo = clean(colI(row, resolver.idx("sexo")));
     } else if (type === "s2") {
       guardaCns();

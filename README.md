@@ -9,7 +9,7 @@ para servidor**.
 
 *Captura real do aplicativo com dados fictícios. Nenhum dado de paciente real foi usado.*
 
-**Versão atual: 1.0.17** (Android `versionCode 21` · Windows `1.0.17.0`)
+**Versão atual: 1.0.18** (Android `versionCode 22` · Windows `1.0.18.0`)
 
 ---
 
@@ -34,7 +34,7 @@ da unidade sem depender de planilhas espalhadas.
 - **Funcionamento da unidade** em setores organizados (horários, exames, farmácia, vacinação
   e outros fluxos).
 - **Importação em lote** de CSV, TSV, TXT, RAR e ZIP, com união de relatórios e detecção de
-  equipes.
+  equipes. O layout atual do BI (11/2026) é reconhecido, incluindo as colunas CPF e Nº CIDADÃO.
 - **Importar da URL** (opcional): baixa um arquivo `.rar`, `.zip` ou `.csv` de um link HTTPS
   indicado por você. É a única função que usa internet, além de abrir links de WhatsApp.
 - **Faxina de qualidade**: valida CPF e CNS, procura duplicidades, nomes parecidos e
@@ -148,7 +148,7 @@ entregas/               Artefatos locais de entrega (ignorado pelo git)
 - **Versão web:** https://wavizo-bot.github.io/CadastroClinico/app/
 - **Microsoft Store:** https://apps.microsoft.com/detail/9P88RMK5TDSB
 - **Google Play:** https://play.google.com/store/apps/details?id=com.cadclinico.app
-  (versão pública 1.0.7; AAB v21/1.0.17 preparado para envio)
+  (versão pública 1.0.7; 1.0.17 enviada ao Console; AAB vC22/1.0.18 pronto para envio)
 - **Política de Privacidade:** https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
 - **Termos de Serviço:** https://wavizo-bot.github.io/CadastroClinico/termos-de-servico.html
 - **Aviso Legal:** https://wavizo-bot.github.io/CadastroClinico/aviso-legal.html
@@ -175,4 +175,4 @@ WhatsApp links open the external app. It is an independent tool — not an offic
 system, medical record or medical device — and it does not replace the judgement of a qualified
 professional. Available for Android, Windows and the web, with manual JSON export for backup.
 
-Version 1.0.17. Contact: mmr05@hotmail.com · +55 11 97883-1938.
+Version 1.0.18. Contact: mmr05@hotmail.com · +55 11 97883-1938.

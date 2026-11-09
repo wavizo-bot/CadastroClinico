@@ -1,7 +1,7 @@
 ================================================================================
 MANUAL DO PROJETO — "CADASTRO CLÍNICO"
 Pasta: raiz do repositório (CadastroClinico/)
-Gerado: 06/10/2026 | Atualizado: 05/11/2026 | Versão do app: 1.0.17 (Android versionCode 21 | MSIX 1.0.17.0)
+Gerado: 06/10/2026 | Atualizado: 09/11/2026 | Versão do app: 1.0.18 (Android versionCode 22 | MSIX 1.0.18.0)
 ================================================================================
 
 TL;DR
@@ -305,23 +305,23 @@ GOOGLE PLAY (Android):
     SHA-1  BE:FA:A2:26:67:A5:B6:81:7E:C6:61:AB:8A:86:68:B9:C1:2C:62:E4
     SHA-256 3F:BB:AD:00:28:F6:3A:FA:0E:C8:A1:76:E3:66:93:21:6E:A2:75:FD:50:
             26:35:BF:8F:F5:20:4B:C0:A5:C1:B9
-  Última versão enviada ao Play: 1.0.10 (versionCode 9). Pacote atual:
-  1.0.17 (versionCode 21), pronto para envio; o 1.0.16 (versionCode 20) foi
-  construído, testado e tagueado, mas não enviado. Nunca reutilizar o 18
-  (queimado) nem o 19.
+  Última versão enviada ao Play: 1.0.17 (versionCode 21), conforme confirmado
+  pelo usuário. Pacote atual: 1.0.18 (versionCode 22), pronto para envio. Nunca
+  reutilizar os versionCodes 18, 19, 20 ou 21.
 
 MICROSOFT STORE (Windows):
 - Identidade: Name wavizo.CadastroClnico | Publisher CN=57BB464E-553F-45B6-A4ED-B253157408EB
   | PublisherDisplayName wavizo | PFN wavizo.CadastroClnico_c5p81jb0en0bm |
-  Store ID 9P88RMK5TDSB | último publicado: 1.0.13.0; manifesto/build local
-  (msix/CadastroClinicoMSIX/Package.appxmanifest): 1.0.17.0 — pronto para envio
+  Store ID 9P88RMK5TDSB | último enviado: 1.0.17.0 (conforme confirmado pelo
+  usuário; disponibilidade pública não verificada); manifesto/build local
+  (msix/CadastroClinicoMSIX/Package.appxmanifest): 1.0.18.0 — pronto para envio
   (o Partner Center precisa de um novo upload; confirmar no painel).
 - Política de privacidade no Partner Center:
   https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html
-- Pacotes: entregas/windows/wavizo.CadastroClnico_1.0.17.0_x64.msix é o mais
-  recente (1.0.8/1.0.9/1.0.10/1.0.13/1.0.15/1.0.16 em entregas/windows/historico/;
-  UNSIGNED — a Store re-assina; aceito) e entregas/play/app-release-vC21-1.0.17.aab
-  é o AAB pronto para envio.
+- Pacotes: entregas/windows/wavizo.CadastroClnico_1.0.18.0_x64.msix é o mais
+  recente (1.0.8/1.0.9/1.0.10/1.0.13/1.0.15/1.0.16/1.0.17 em
+  entregas/windows/historico/; UNSIGNED — a Store re-assina; aceito) e
+  entregas/play/app-release-vC22-1.0.18.aab é o AAB pronto para envio.
 - Guia de submissão completo com respostas prontas: msix/PARTNER_CENTER.md.
 - Screenshots desktop 1366x768 prontas em docs/img/ (WebP) e
   msix/listing/screenshots/ (PNG), com dados fictícios. A Faxina ficou fora da
@@ -366,7 +366,7 @@ log.txt                    HISTÓRICO COMPLETO de entregas (26/09 a 29/10/2026):
 todo.md                    Backlog (108 itens, quase todos [x]). CUIDADO: contém itens
                            com versão "1.20.x" (senha trimestral, bloqueio por 2 dias,
                            limpeza após 10 dias etc.) que NÃO batem com o package.json
-                           atual (1.0.17) — provavelmente pertencem ao app irmão
+                           atual (1.0.18) — provavelmente pertencem ao app irmão
                            Acompanha Digital. Confirmar antes de usar como escopo atual.
 ideas.md                   Direção visual "Saúde Pública Editorial": Azul Clínica
                            #123B67, fontes Outfit (títulos) + Source Sans 3 (textos),
@@ -406,61 +406,70 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
   Sobrinho); Fuse mantido só para mãe/endereço e fallback do nome. Android
   versionCode 21 / MSIX 1.0.17.0; testes sintéticos cobrem nome do meio,
   "Marcello", ordem invertida e nome com sufixo.
+1.0.18 (09/11): importador do BI atualizado para o layout 11/2026 do relatório
+  "Cadastro — Análise Detalhada": CPF em H e Nº CIDADÃO em J deslocaram nome,
+  nascimento, sexo, mãe e endereço. CPF e Nº CIDADÃO agora vão para o paciente;
+  aliases/letras de fallback atualizados e teste sintético do novo layout.
+  Parse real recuperou 13.328 CPFs e 14.238 Nº CIDADÃO no s1, elevando os
+  pacientes com matrícula de 14.413 para 15.335. Android versionCode 22 /
+  MSIX 1.0.18.0.
 
 --------------------------------------------------------------------------------
-11. STATUS / PENDÊNCIAS (em 05/11/2026)
+11. STATUS / PENDÊNCIAS (em 09/11/2026)
 --------------------------------------------------------------------------------
-- 1.0.17 (05/11): busca de nomes por ranker de tokens em patientSearch.ts
-  (primeiro/último nome, cobertura de tokens, prefixo, erro de digitação e
-  sufixos Júnior/Filho/Neto/Sobrinho); Fuse mantido para mãe/endereço e como
-  fallback do nome (limite 10). `pnpm check` OK e 62 testes Vitest verdes
-  (17 em patientSearch.test.ts). Benchmark sintético de 30 mil nomes:
-  índice ~104 ms e busca ~67 ms.
-- AAB v21 (1.0.17) construído com R8 full mode: versionCode 21 / versionName
-  1.0.17, 8.846.340 bytes, SHA-256
-  EBDCE25F2E5464FE8CBA03F80E11EB7E7F43BF3EE8EC7AB8ACEA48F440F7FFB7,
+- 1.0.18 (09/11): importador do BI atualizado para o layout 11/2026 do relatório
+  "Cadastro — Análise Detalhada". O s1 agora traz CPF (H) e Nº CIDADÃO (J);
+  nome, nascimento, sexo, mãe, tipo de logradouro, logradouro, número,
+  complemento e bairro foram deslocados. O parser usa aliases como fonte
+  principal e letras apenas como fallback, grava CPF e Nº CIDADÃO no paciente e
+  não confunde tipo de logradouro com número do imóvel.
+- `pnpm check` OK e 65 testes Vitest verdes, incluindo o novo
+  client/src/lib/biImport.test.ts com três casos sintéticos do layout 11/2026.
+  Nenhum dado real de paciente é usado nos testes versionados.
+- Parse real do pacote 11/2026 (somente contagens, sem exibir nomes): s1 com
+  13.328 CPFs e 14.238 Nº CIDADÃO; total de pacientes com matrícula subiu de
+  14.413 para 15.335. O merge preserva os campos existentes.
+- AAB v22 (1.0.18) construído com R8 full mode: versionCode 22 / versionName
+  1.0.18, 8.847.829 bytes, SHA-256
+  0B6284DC8AA72334F6C20AF36DC3AD152BAFBA58CD9C9A36EAD5D4DC2D4FC8B9,
   assinatura BE:FA (upload). r8.json: isOptimizationsEnabled=true e
-  isProGuardCompatibilityModeEnabled=false; proguard.map presente (5.434.851
-  bytes). APK v21: 8.433.334 bytes, SHA-256
-  6B5C331F667BC2D5E6D38DE686E441F7B5DD2DBC72F9B1AA56144AA93066FC1F.
-- AAB v20 (1.0.16) anterior: versionCode 20 / versionName 1.0.16, 8.844.700
-  bytes, SHA-256
-  76BE599A814DB5E0D6C7B0898BD28CE90911C1633A0C2D1A293CFFD8A265F174,
-  assinatura BE:FA; tag v1.0.16 em 3e8409b. Não foi enviado. O v20 foi
-  construído/testado localmente; o v19 foi testado no Xiaomi 25069PTEBG
-  (goya, Android 16) com dados preservados.
-- Teste físico do v21 PENDENTE. O 25069PTEBG (goya, v19 BE:FA) não estava
+  isProGuardCompatibilityModeEnabled=false; proguard.map presente.
+  APK v22: 8.434.814 bytes, SHA-256
+  D776D0BF1A65A893D5AB2D767E9313E5964F6596EF5391FBE393D5A8B369F9AA.
+- Teste físico do v22 PENDENTE. O 25069PTEBG (goya, Android 16) não estava
   conectado. O 2410CRP4CG (uke, Android 16) tem o app da Play 1.0.7 /
   versionCode 8 e assinatura d1ef9895; "adb install -r" falha com
   INSTALL_FAILED_UPDATE_INCOMPATIBLE e os dados devem ser preservados. NÃO
   desinstalar a versão da Play sem autorização do usuário. O AVD caderno_phone
   também não inicia ("x86_64 emulation currently requires hardware
   acceleration"; driver de hipervisor ausente).
-- MSIX 1.0.17.0: build/validação por msix/build.ps1; 81.328.258 bytes,
-  SHA-256 B9089D0B045468271CD6B23E2877891A20485528375DA8B73ED7264E4BD58F80,
+- MSIX 1.0.18.0: build/validação por msix/build.ps1; 81.328.596 bytes,
+  SHA-256 E8FFF8D64836F82B155D557B0858633D6A0ED2C3942A977F415B87FAA269A59D,
   sem assinatura (a Store re-assina). Cópia de teste assinada com o certificado
   local CN=57BB464E-553F-45B6-A4ED-B253157408EB (thumbprint
-  93F250E24074A804684F9E390D36DBB662DF27AF): 81.345.440 bytes, SHA-256
-  463A70768EEC02EDF198BFDC6E2901EB74D2406CCD802ABD76DF880DE3894EB8,
-  assinatura Valid. A cópia de teste foi instalada por cima da 1.0.16.0
-  Developer em 05/11/2026; o app abriu como 1.0.17 e os dados existentes
-  foram preservados.
-- Landing + docs/app regenerados em 1.0.17 (base /CadastroClinico/app/): o
-  `docs/index.html` exibe 1.0.17 e o `docs/app` foi construído com os novos
-  bundles. Publicado no Pages e verificado após o push: /app/ carrega
-  index-DLMCk0Yf.js e exibe "Versão 1.0.17".
+  93F250E24074A804684F9E390D36DBB662DF27AF): 81.345.867 bytes, SHA-256
+  2E6DE263A06EFF28C6B69A0B6E2D12695A3EBEC26C1B31F5F999C7E864CEA7C1,
+  assinatura Valid. A cópia de teste foi instalada por cima da 1.0.17.0
+  Developer em 09/11/2026; o app abriu como 1.0.18 com os dados existentes
+  preservados (captura de tela confirma "Versão 1.0.18 com dados de
+  15/10/2026").
+- Landing + docs/app regenerados em 1.0.18 (base /CadastroClinico/app/): o
+  `docs/index.html` exibe 1.0.18 e o `docs/app` é construído com os bundles
+  novos. Publicar no Pages e verificar após o push: /app/ deve exibir
+  "Versão 1.0.18".
 - Play Console: página pública no ar com 1.0.7 (versionCode 8, atualizada em
-  26/10/2026); enviar o AAB v21 e rotacionar a upload key (ação do usuário).
-  Nunca reutilizar os versionCodes 18, 19 ou 20.
-- Microsoft Store: enviar o MSIX 1.0.17.0 sem assinatura ao Partner Center,
-  removendo a entrada antiga 1.0.13.0 em Packages. Guia:
-  msix/PARTNER_CENTER.md.
-- Entregas locais: entregas/play/app-release-vC21-1.0.17.aab,
-  entregas/play/app-release-vC21-1.0.17.apk e
-  entregas/windows/wavizo.CadastroClnico_1.0.17.0_x64.msix; a 1.0.16 foi
-  movida para os respectivos historico/.
-- Git: commit 8a810fb com a busca, o versionamento e a documentação; tag
-  v1.0.17 publicada no origin e apontando para o commit que gerou os pacotes.
+  26/10/2026); a 1.0.17 (vC21) foi enviada pelo usuário. Enviar o AAB v22 e
+  rotacionar a upload key (ação do usuário). Nunca reutilizar os versionCodes
+  18, 19, 20 ou 21.
+- Microsoft Store: a 1.0.17.0 foi enviada pelo usuário; enviar o MSIX 1.0.18.0
+  sem assinatura ao Partner Center, removendo a entrada antiga 1.0.13.0 em
+  Packages. Guia: msix/PARTNER_CENTER.md.
+- Entregas locais: entregas/play/app-release-vC22-1.0.18.aab,
+  entregas/play/app-release-vC22-1.0.18.apk e
+  entregas/windows/wavizo.CadastroClnico_1.0.18.0_x64.msix; os pacotes 1.0.17
+  foram movidos para os respectivos historico/.
+- Git: commit e tag v1.0.18 a criar após a revisão final; a tag deve apontar
+  para o commit que gerou os pacotes.
 
 FIM DO MANUAL — para detalhes de implementação, consulte log.txt e os próprios
 fontes (client/src/lib/* são pequenos e bem comentados em PT-BR).
