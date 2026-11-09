@@ -468,8 +468,9 @@ repo.txt / msix/README.md / msix/PARTNER_CENTER.md  Identidades e guia de submis
   entregas/play/app-release-vC22-1.0.18.apk e
   entregas/windows/wavizo.CadastroClnico_1.0.18.0_x64.msix; os pacotes 1.0.17
   foram movidos para os respectivos historico/.
-- Git: commit e tag v1.0.18 a criar após a revisão final; a tag deve apontar
-  para o commit que gerou os pacotes.
+- Git: commit 9d3a546 com o parser, o versionamento, o Pages e a documentação;
+  tag anotada v1.0.18 apontando para esse commit. main e tag publicadas no
+  origin; Pages verificado após o push.
 
 FIM DO MANUAL — para detalhes de implementação, consulte log.txt e os próprios
 fontes (client/src/lib/* são pequenos e bem comentados em PT-BR).
