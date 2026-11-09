@@ -73,6 +73,12 @@ const isSim = (v: unknown) => ["SIM","S","X","TRUE","VERDADEIRO","1","YES","OK"]
 // bate exatamente com a flag SIM do relatório s4 (56 cardíacas, 30 respiratórias, 9 rins).
 const isPresenca = (v: unknown) => { const t = norm(v); return t !== "" && t !== "nao informado"; };
 
+/* Relatórios de texto aceitos na importação: .csv/.tsv/.txt e arquivos sem
+   extensão (o BI passou a exportar os relatórios sem sufixo). */
+export function ehArquivoBiTexto(nome: string): boolean {
+  return !nome.includes(".") || /\.(csv|tsv|txt)$/i.test(nome);
+}
+
 export async function readBiFileText(file: File): Promise<string> {
   const buffer = await file.arrayBuffer();
   const bytes = new Uint8Array(buffer);

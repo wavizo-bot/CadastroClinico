@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectBiReport, mapBiRows, mergeBiPatients, parseBiCsv } from "./biImport";
+import { detectBiReport, ehArquivoBiTexto, mapBiRows, mergeBiPatients, parseBiCsv } from "./biImport";
 
 // Layout sintético do relatório "Cadastro — Análise Detalhada" (11/2026).
 // CPF e Nº CIDADÃO entraram em H/J e deslocaram as colunas seguintes.
@@ -90,6 +90,22 @@ describe("BI — layout 11/2026 do Cadastro — Análise Detalhada", () => {
     expect(paciente.registration).toBe("999999");
     expect(paciente.cpf).toBe("12345678901");
     expect(paciente.address).toMatch(/Flores/i);
+  });
+
+  it("reconhece o relatório mesmo sem extensão no nome", () => {
+    const rows = parseBiCsv(tsv(CABECALHO_S1, LINHA_S1));
+    expect(detectBiReport("Relatorio-de-Cadastros-Individuais-Cadastro-Analise-Detalhada", rows)).toBe("s1");
+  });
+
+  it("aceita relatórios sem extensão e com extensões de texto", () => {
+    expect(ehArquivoBiTexto("Relatorio-de-Cadastros-Individuais-Cadastro-Analise-Detalhada")).toBe(true);
+    expect(ehArquivoBiTexto("Equipes")).toBe(true);
+    expect(ehArquivoBiTexto("dados.csv")).toBe(true);
+    expect(ehArquivoBiTexto("dados.tsv")).toBe(true);
+    expect(ehArquivoBiTexto("dados.txt")).toBe(true);
+    expect(ehArquivoBiTexto("dados.rar")).toBe(false);
+    expect(ehArquivoBiTexto("dados.zip")).toBe(false);
+    expect(ehArquivoBiTexto(".DS_Store")).toBe(false);
   });
 
   it("não confunde o tipo de logradouro com o número do imóvel", () => {
