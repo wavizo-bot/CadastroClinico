@@ -13,7 +13,7 @@
 | Package Family Name (PFN) | `wavizo.CadastroClnico_c5p81jb0en0bm` |
 | Package SID | `S-1-15-2-2847593193-4293426457-1784438407-1723172423-4006318822-2270365518-2666157207` |
 | Store ID | `9P88RMK5TDSB` |
-| Versão | `1.0.18.0` — **política da Store: o 4º campo (revisão) SEMPRE 0** (erro: *"não é permitido ... número de revisão diferente de zero"*). Incrementar o **3º campo** a cada upload: `1.0.8.0` → `1.0.9.0` → `1.0.10.0` → `1.0.13.0` → `1.0.15.0` → `1.0.16.0` → `1.0.17.0` → `1.0.18.0` (09/11/2026, layout 11/2026 do BI com CPF e Nº CIDADÃO; alinhado ao Android 1.0.18 / versionCode 22) → próxima: `1.0.19.0`... (nunca reutilizar versões já enviadas, mesmo que reprovadas). O `package.json` está em **1.0.18** (segue o app web/Android) |
+| Versão | `1.0.19.0` — **política da Store: o 4º campo (revisão) SEMPRE 0** (erro: *"não é permitido ... número de revisão diferente de zero"*). Incrementar o **3º campo** a cada upload: `1.0.8.0` → `1.0.9.0` → `1.0.10.0` → `1.0.13.0` → `1.0.15.0` → `1.0.16.0` → `1.0.17.0` → `1.0.18.0` → `1.0.19.0` (09/11/2026, importação de relatórios do BI sem extensão; alinhado ao Android 1.0.19 / versionCode 23) → próxima: `1.0.20.0`... (nunca reutilizar versões já enviadas, mesmo que reprovadas). O `package.json` está em **1.0.19** (segue o app web/Android) |
 | Arquitetura | `ProcessorArchitecture="x64"` no Identity (era `Neutral` — colidia o nome completo entre uploads e não descrevia o conteúdo x64) |
 
 **DisplayName:** o `Package/Properties/DisplayName` do manifesto deve bater **exatamente** com o nome reservado na Store: `Cadastro Clínico` (com acento). O `build.ps1` lê/escreve o manifesto em UTF-8 explícito sem BOM — se fosse lido como ANSI, o Partner Center rejeitaria com erro *"nome de exibição que você não reservou: Cadastro ClÃ­nico"* (mojibake, corrigido em 05/10/2026).
@@ -63,13 +63,13 @@ Ordem das telas (docs Microsoft, app MSIX): **Pricing and availability → Prope
 
 ### 3.4 Packages
 - Gerar o pacote nesta máquina: `.\msix\build.ps1` (**já funciona**: .NET 8 SDK + `makeappx` do Windows SDK — Visual Studio não é necessário)
-- Upload do `.msix` gerado em **`msix\dist\wavizo.CadastroClnico_1.0.18.0_x64.msix`** (formato aceito pelo Partner Center junto com .msixbundle/.msixupload; o tamanho exato é informado ao final do `build.ps1`)
+- Upload do `.msix` gerado em **`msix\dist\wavizo.CadastroClnico_1.0.19.0_x64.msix`** (formato aceito pelo Partner Center junto com .msixbundle/.msixupload; o tamanho exato é informado ao final do `build.ps1`)
 - **Não precisa assinar**: a Microsoft re-assina o pacote após a certificação (docs: *App package requirements for MSIX app*)
 - **Upload:** se o submission já tem um `.msix` antigo, o Partner Center pode reclamar de nome completo duplicado. Nesse caso: apagar as entradas antigas em Packages **e** subir o arquivo novo (versão incrementada) — nunca dois pacotes com versão/arquitetura iguais e conteúdo diferente
 - Arquitetura: **x64 autocontido** (não exige .NET na máquina do usuário); para cobrir ARM64 no futuro, gerar variante `-r win-arm64`
-- "What's new in this version" (limite 1500 caracteres) — texto pronto para a **1.0.18.0** (09/11/2026):
+- "What's new in this version" (limite 1500 caracteres) — texto pronto para a **1.0.19.0** (09/11/2026):
 
-  > Atualização do importador para o novo layout do Banco de Dados oficial (11/2026). O relatório "Cadastro — Análise Detalhada" passou a incluir as colunas CPF e Nº CIDADÃO; o aplicativo agora reconhece essas colunas, importa o CPF e usa o Nº CIDADÃO como número de cadastro. Os demais relatórios e o cruzamento entre CNS, CPF e nome + nascimento continuam funcionando. Quem já tem dados no aparelho não perde nada: a importação preserva os campos já existentes e só completa o que veio na base nova. Também foram incluídos testes automáticos com um arquivo sintético desse layout, sem dados reais de pacientes. O restante segue igual: 100% offline, banco cifrado no dispositivo (AES-GCM), importação em lote (CSV, TSV, TXT, RAR e ZIP) e "Importar da URL", sem conta, nuvem, anúncios ou analytics.
+  > O importador agora aceita os relatórios do Banco de Dados oficial exportados sem extensão de arquivo. Basta selecionar os arquivos como vieram (ou o RAR/ZIP que os contém): o aplicativo reconhece cada relatório pelo conteúdo do cabeçalho, sem depender do nome ou do sufixo. Continuam aceitos CSV, TSV e TXT, e o layout 11/2026 do BI com CPF e Nº CIDADÃO segue funcionando. Quem já tem dados no aparelho não perde nada: a importação preserva os campos existentes e só completa o que veio na base nova. Também foram incluídos testes automáticos com arquivos sintéticos sem extensão, sem dados reais de pacientes. O restante segue igual: 100% offline, banco cifrado no dispositivo (AES-GCM), importação em lote (CSV, TSV, TXT, RAR e ZIP) e "Importar da URL", sem conta, nuvem, anúncios ou analytics.
 
 ### 3.5 Store listings (por idioma: pt-BR)
 - **Nome (obrigatório):** Cadastro Clínico
@@ -97,7 +97,7 @@ Ordem das telas (docs Microsoft, app MSIX): **Pricing and availability → Prope
 
 | # | Pendência | Status |
 |---|---|---|
-| 1 | ~~Instalar .NET 8 SDK e rodar `.\msix\build.ps1`~~ | **CONCLUÍDO** — pacote gerado e validado: `msix/dist/wavizo.CadastroClnico_1.0.18.0_x64.msix` (77,6 MB, 09/11/2026); identidade/versão x64 e conteúdo web conferidos. Smoke test visual OK: cópia test-signed instalada por cima da 1.0.17.0 Developer; o app abriu como 1.0.18 com os dados existentes preservados |
+| 1 | ~~Instalar .NET 8 SDK e rodar `.\msix\build.ps1`~~ | **CONCLUÍDO** — pacote gerado e validado: `msix/dist/wavizo.CadastroClnico_1.0.19.0_x64.msix` (77,6 MB, 09/11/2026); identidade/versão x64 e conteúdo web conferidos. Smoke test visual OK: cópia test-signed instalada por cima da 1.0.18.0 Developer; o app abriu como 1.0.19 com os dados existentes preservados |
 | 2 | Capturar screenshots desktop (1366×768+, até 10) do app compilado | **CONCLUÍDO (capturas reais)** — `docs/img/` (WebP) e `msix/listing/screenshots/` (PNG 1366×768) com dados fictícios; subir as 6 principais no Partner Center |
 | 3 | ~~Publicar `politica-privacidade.html` em URL HTTPS~~ | **CONCLUÍDO (29/10/2026)** — Pages ativo em `main` / `docs` (build `9d22ddd`, HTTPS forçado); URL testada com HTTP 200: https://wavizo-bot.github.io/CadastroClinico/politica-privacidade.html |
 | 4 | Confirmar/obter o rating IARC (reaproveitar ID da Play) | Pendente (conta Partner Center) |
@@ -121,4 +121,4 @@ Ordem das telas (docs Microsoft, app MSIX): **Pricing and availability → Prope
 | 2 | 06/10/2026 | *"dois pacotes com o nome completo wavizo.CadastroClnico_1.0.7.0_Neutral_ ... conteúdos diferentes"* | Pacote antigo (mojibake) ainda no submission + novo upload com mesma versão e arquitetura `Neutral` | `ProcessorArchitecture="x64"` + bump de versão; apagar entradas antigas em Packages antes de subir o novo |
 | 3 | 06/10/2026 | *"não é permitido ... número de revisão diferente de zero ... especifica 1.0.7.1"* | Versão incrementada no 4º campo (revisão) — proibido pela Store | 4º campo = `0` sempre; incrementar o 3º campo: `1.0.8.0` |
 
-**Pacote atual:** `msix/dist/wavizo.CadastroClnico_1.0.18.0_x64.msix` (build 09/11/2026 — layout 11/2026 do BI com CPF e Nº CIDADÃO; sem assinatura, a Store re-assina) — remover a entrada antiga `1.0.13.0` em *Packages* e enviar este. SHA-256: `E8FFF8D64836F82B155D557B0858633D6A0ED2C3942A977F415B87FAA269A59D`.
+**Pacote atual:** `msix/dist/wavizo.CadastroClnico_1.0.19.0_x64.msix` (build 09/11/2026 — importação de relatórios do BI sem extensão; sem assinatura, a Store re-assina) — remover a entrada antiga `1.0.13.0` em *Packages* e enviar este. SHA-256: `09517E1560372D588BF8640F4341A6E246AD4568C1B44E05663482B33CD41A98`.
